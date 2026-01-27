@@ -1,0 +1,157 @@
+---
+title: 'STAT 4279/5279: Homework #1'
+author: "Your Full Name Here"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Instructions 
+
+ - Submit both your `.Rmd` file and the knitted PDF or HTML file.
+ - All code must run successfully when the document is knitted.
+ - Use the `hw1.Rmd` file as your template. Type your answers into this document. Rename the file to `hw1_FirstName_LastName.Rmd`.  
+ - Do not rely on objects created in the Console.
+ - Do not save or load a workspace image (.RData).
+ - Unless explicitly stated, do not hard-code numeric answers.
+
+**Q1. R Markdown Style **  
+
+Write a paragraph introducing yourself. Describe three things that bring you joy and three things that annoy you. After your paragraph, list as a bullet point your experience with both R and R Markdown. Your text must satisfy the following formatting requirements:
+
+  - Begin the paragraph with the sentence "Hi, my name is ...", and format your name using inline code formatting.
+  - When describing the three things that bring you joy, bold at least three keywords or short phrases that you wish to emphasize.
+- When describing the three things that annoy you, italicize at least three keywords or short phrases that you wish to emphasize.
+- The description of your experience with R and R markdown must be listed as a bullet point after the paragraph describing yourself. 
+
+  
+  You may find the `RMarkdown_basics.Rmd` helpful. It provides and overview and shortcuts for how to edit the appearance of an R Markdown file (`.Rmd`). 
+
+```
+YOUR ANSWER GOES HERE 
+```
+
+**Q2. Recapping Activity 1**
+
+Answer briefly (1–3 sentences each).
+
+- **2a.** Explain one key difference between running code interactively in a .R script and knitting an .Rmd file that affects reproducibility.
+
+- **2b. ** Suppose your .Rmd file runs correctly when you click “Run” on each chunk but fails when you knit. Give one concrete reason this might happen and how to fix it.
+
+- **2c. ** Why is saving the workspace image (.RData) generally discouraged in statistical computing workflows?
+
+**Q3. Practice with Vectors**  
+
+Scenario: You are analyzing study data for a research participant over a 50-day period leading up to a final examination. The data follows specific patterns based on the day of the week and the proximity to the exam.
+
+- **3a**. The Baseline: Create a vector called `routine` that repeats the sequence `c(2, 2, 4, 4, 6)` exactly 10 times to cover 50 days. This represents a repeating 5-day study cycle.
+
+```{r}         
+### YOUR CODE GOES HERE
+```
+
+- **3b.** Create a vector called `exam_ramp` using `seq()` that starts at 0.1 and ends at 5.0, with a length of 50. This represents the gradual increase in focus as the exam approaches.
+
+```{r}         
+### YOUR CODE GOES HERE
+```
+
+- **3c.**  Create your primary vector `study_hours` by adding `routine` and `exam_ramp` together.
+```{r}         
+### YOUR CODE GOES HERE
+```
+
+- **3d.**   Use `which()` to identify the specific indices (days) where the student studied more than 8 hours.
+
+```{r}         
+### YOUR CODE GOES HERE
+```
+
+- **3e.**   What is the average study hours? Use `mean()` on the vector `study_hours`. 
+
+```{r}         
+### YOUR CODE GOES HERE
+```
+
+- **3f.**  Use boolean indexing to calculate the `mean()` study hours for only the days where `study_hours` was between 4 and 7 hours.
+
+```{r}         
+### YOUR CODE GOES HERE
+```
+
+**Q4. Matrix Transformations** 
+
+- **4a.** Transform the 50-day `study_hours` vector into a 10x5 matrix (10 weeks, 5 days per week) called `study_matrix`. Use the `matrix()` function and ensure it is filled by row so that each row represents one full 5-day week.
+```{r}         
+### YOUR CODE GOES HERE
+```
+
+- **4b.**  Use `[row, col]` indexing to find how many hours were studied on Wednesday (Day 3) of the 4th week.
+
+```{r}         
+### YOUR CODE GOES HERE
+```
+
+- **4c.** In R, leaving an index blank means "select all." Extract all data for Week 7 by indexing the 7th row and leaving the column index blank. 
+
+```{r}         
+### YOUR CODE GOES HERE
+```
+
+- **4d.**  Extract all Friday (Day 5) data across all 10 weeks by leaving the row index blank. 
+```{r}         
+### YOUR CODE GOES HERE
+```
+
+
+**Q5. Logical Comparisons**
+
+- **5a.**  Calculate the average study time for each of the 10 weeks. Name this vector `weekly_averages`. 
+```{r}         
+### YOUR CODE GOES HERE
+```
+
+- **5b.**  Identify "Burnout Days" where the actual study time exceeded the weekly average. Compare the `study_matrix` to the `weekly_averages` vector. Because of R's recycling rule, you may need to transpose the matrix or think critically about how R aligns a vector of length 10 with a 10x5 matrix. Print the first 6 instances of burnout days. 
+
+```{r}         
+### YOUR CODE GOES HERE
+```
+
+**Q6. Generating Binomial Random Variables **
+
+The binomial distribution $\mathrm{Bin}(m,p)$ is defined by the number of successes in $m$ independent trials, each have probability $p$ of success. Think of flipping a coin $m$ times, where the coin is weighted to have probability $p$ of landing on heads.
+
+The R function `rbinom()` generates random variables with a binomial distribution. E.g., 
+
+```{r, eval=FALSE}
+rbinom(n=20, size=10, prob=0.5)
+```
+
+produces 20 observations from \(\mathrm{Bin}(10,0.5)\).
+
+- **6a.** Generate 500 random values from the $\mathrm{Bin}(15,0.5)$ distribution, and store them in a vector called `bin.draws.0.5`. Extract and display the first 25 elements. Extract and display all but the first 475 elements. 
+
+```{r}
+# YOUR CODE GOES HERE
+```
+
+- **6b.** Add the first element of `bin.draws.0.5` to the fifth. Compare the second element to the tenth, which is larger? 
+
+```{r}
+# YOUR CODE GOES HERE
+```
+
+- **6c.** Call `summary()` on `bin.draws.0.5` and describe the result.
+
+```{r}
+# YOUR CODE GOES HERE
+```
+
+- **6d.** Find the data type of the elements in `bin.draws.0.5` using `typeof()`. Then convert `bin.draws.0.5` to a vector of characters, storing the result as `bin.draws.0.5.char`, and use `typeof()` again to verify that you've done the conversion correctly. Call `summary()` on `bin.draws.0.5.char`. Is the result formatted differently from what you saw above? Why?
+
+```{r}
+# YOUR CODE GOES HERE
+```
