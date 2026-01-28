@@ -1,0 +1,203 @@
+---
+title: "Data Structures: List and Data Frames"
+author: "Statistical Computing for Data Analysis"
+output:
+  slidy_presentation:
+    font_adjustment: -1 # -1, 0, +1 for text size adjustment
+---
+
+Data Structures
+===
+Data types are the fundamental buildings. Data structures organize these data types. 
+## Common data structures in R
+
+- **Vector**  
+  A one-dimensional sequence of values, all of the same type
+
+- **Matrix**  
+  A two-dimensional array of values, all of the same type
+
+- **List**  
+  A collection of objects that can be of different types and structures
+
+- **Data frame**  
+  A table-like structure where each column is a vector;
+  different columns may have different types
+
+- **Factor**  
+  A special object used to represent categorical data
+
+
+Lists
+====
+  
+  A **list** is the most general form of vectors in R. 
+  
+List entries can be of any type and can have mixed types
+
+```{r}
+l <- list(1:2, c("hat","mat","dat"))
+l
+```
+
+List entries can be named: 
+```{r}
+lNamed <- list(foo = 1:2, bar = c("hat","mat","dat"))
+
+lNamed
+```
+
+Most of what you can do with vectors you can also do with lists
+
+
+Accessing pieces of lists
+===
+  
+- Can use `[ ]` as with vectors  
+- Or use `[[ ]]`, but only with a single index `[[ ]]` drops names and structures, `[ ]` does not
+
+```{r}
+l[2]
+l[[2]]
+l[[2]][1]
+```
+
+Expanding and contracting lists
+===
+  
+Add to lists with `c()` (also works with vectors):
+  
+```{r}
+l1 <- c(list(TRUE),l)
+l1
+str(l1)
+```
+`append(x, values, after)` works similarly: 
+```{r}
+l2 <- append(l, list(TRUE),after =0)
+## after specifies the subscript position 
+l2
+str(l2)
+```
+
+Set a list entry `NULL` in order to remove it: 
+```{r}
+l1[2:3] <- NULL
+str(l1)
+```
+  
+Flattening lists
+===
+
+`unlist` flattens a list into vector. If it contains mixed types, type conversion will be done automatically. 
+
+```{r}
+l3 <- c(list(1) ,l)
+l3
+```
+
+```{r}
+unlist(l3)
+```
+
+
+Names in lists
+===
+  
+We can name some or all of the elements of a list:
+
+```{r}
+my.dist = list("exponential", 7, FALSE)
+my.dist
+```
+
+```{r}
+names(my.dist) = c("family","mean","is.symmetric")
+my.dist
+my.dist[["family"]]
+my.dist["family"]
+```
+
+===
+  
+In addition to indexing, lists have a special shortcut way of using names, with `$`:
+  
+```{r}
+my.dist[["family"]]
+my.dist$family
+```
+
+Adding named elements:
+  
+```{r}
+my.dist$was.estimated = FALSE
+my.dist[["last.updated"]] = "2026-01-01"
+```
+
+Key-value pairs
+===
+  
+  - Lists give us a natural way to store and look up data by _name_, rather than by _position_
+- A really useful programming concept with many names: **key-value pairs**, i.e., **dictionaries**, or **associative arrays**
+  - If all our distributions have components named `family`, we can look that up by name, without caring where it is (in what position it lies) in the list
+
+```{r}
+# Defining a list with named components (key-value pairs)
+normal_dist <- list(
+  family = "Gaussian",
+  mean = 0,
+  sd = 1,
+  link = "identity"
+)
+
+# Retrieval by name (position-agnostic)
+normal_dist$family
+# [1] "Gaussian"
+
+# Alternative syntax using character strings
+normal_dist[["family"]]
+# [1] "Gaussian"
+```
+
+Data frames
+===
+  
+ - **The Canonical Data Structure**: Represents the standard $n \times p$ data matrix, where $n$ rows correspond to observations (cases) and $p$ columns represent variables (features). 
+ - **Statistical Standard:** Most modeling and visualization functions in R (e.g., `lm()`, `ggplot2`) are designed specifically to operate on data frames as the primary input.
+ - **Heterogeneous Storage**: Unlike a matrix, which requires all elements to be the same data type, a data frame allows each column to have a distinct type (e.g., numeric, factor, or character) while maintaining equal length. Each column operates like a separate vector. 
+ - Data frames inherit behaviors from both lists and matrices; you can use matrix-like operations (e.g., `rowSums()`, `dim()`) and summary tools (e.g., `summary()`, `str()`) to audit your data efficiently.
+
+
+Matrix vs. Data frame
+===
+
+```{r}
+a.mat = matrix(c(35,8,10,4), nrow=2)
+colnames(a.mat) = c("v1","v2")
+a.mat
+a.mat[,"v1"] 
+```
+
+```{r, eval=FALSE}
+# Try a.mat$v1 and see what happens
+a.mat$v1
+
+Error in a.mat$v1 : $ operator is invalid for atomic vectors
+
+```
+
+```{r}
+a.df = data.frame(a.mat,logicals=c(TRUE,FALSE))
+a.df
+a.df$v1
+a.df[,"v1"]
+a.df[1,]
+colMeans(a.df)
+```
+
+Similar to working on a matrix
+===
+
+- All index rules for a matrix applies to a data frame
+- `df[,"col"]` return the column as a vector
+- `df[,"col", drop=FALSE]` returns a data frame containing a single column. - For a computing task, you need to know what version you need. 

@@ -22,6 +22,11 @@ All slides are provided as HTML and are best viewed in a modern web browser.
   - [Source](1-Fundamentals/Vectors_Matrices.Rmd)
   - [Code](1-Fundamentals/code_Vectors_Matrices.R)
   
+- **Lists and Data frames**
+  - [Slides](1-Fundamentals/Lists_Dataframes.html)
+  - [Source](1-Fundamentals/Lists_Dataframes.Rmd)
+  - [Code](1-Fundamentals/code_Lists_Dataframes.R)
+  
 ### Notes
 
 - Slides may be updated periodically.
