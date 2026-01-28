@@ -17,8 +17,11 @@ All slides are provided as HTML and are best viewed in a modern web browser.
   - [Source](1-Fundamentals/R_Basics.Rmd)
   - [Code](1-Fundamentals/code_R_Basics.R)
   
-
-
+- **Vectors and Matrices**
+  - [Slides](1-Fundamentals/Vectors_Matrices.html)
+  - [Source](1-Fundamentals/Vectors_Matrices.Rmd)
+  - [Code](1-Fundamentals/code_Vectors_Matrices.R)
+  
 ### Notes
 
 - Slides may be updated periodically.

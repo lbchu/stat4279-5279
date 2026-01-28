@@ -1,0 +1,275 @@
+---
+title: 'R Basics: Vectors and Matrices'
+author: "Statistical Computing for Data Analysis"
+output:
+  slidy_presentation:
+    font_adjustment: -1
+    self_contained: true
+---
+
+Outline
+===
+
+- Data structures: vectors and matrices
+- Indexing
+
+
+Data Structures
+===
+Data types are the fundamental buildings. Data structures organize these data types. 
+## Common data structures in R
+
+- **Vector**  
+  A one-dimensional sequence of values, all of the same type
+
+- **Matrix**  
+  A two-dimensional array of values, all of the same type
+
+- **List**  
+  A collection of objects that can be of different types and structures
+
+- **Data frame**  
+  A table-like structure where each column is a vector;
+  different columns may have different types
+
+- **Factor**  
+  A special object used to represent categorical data
+
+
+Vectors
+===
+
+- A **data structure** is a grouping of related data values into an object
+- A **vector** is a sequence of values, all of the same type
+
+```{r}
+x = c(7, 8, 10, 45)
+x
+is.vector(x)
+```
+
+- The `c()` function returns a vector containing all its arguments in  specified order
+- `1:5` is shorthand for `c(1,2,3,4,5)`, and so on
+- `x[1]` would be the first element, `x[4]` the fourth element, and `x[-4]` is a vector containing *all but* the fourth element
+
+`vector(length=n)` returns an empty vector of length *n*; helpful for filling things up later
+
+```{r}
+weekly.hours = vector(length=5)
+weekly.hours
+weekly.hours[5] = 8
+weekly.hours
+```
+
+Other Functions for Building a Vector
+===
+
+- `c()` (concatenate function)
+- `:`
+- `seq()`: for creating a sequence of values
+- `rep()`: repeating a value
+- `ifelse()`: creating a vector where the value of each entry depends on a logical rule. 
+
+Vector arithmetic
+===
+
+Arithmetic operator apply to vectors in a "componentwise" fashion
+
+```{r}
+y = c(-7, -8, -10, -45)
+x + y
+x * y
+```
+
+Are vectors in R only contain numeric data types?
+===
+
+No - but they must contain elements of the type
+```{r}
+c(TRUE,FALSE,TRUE,FALSE)
+c("red","blue","green","orange")
+```
+
+Vectorized Operations
+===
+
+Most of the R operations and functions are vectorized. Namely, they apply to vectors and not just scalars. 
+```{r}
+(1:10)^2
+```
+
+- Operator `^2` applies to each element in the vector. 
+
+Basic R operations follow a **recyling rule**: if two vectors have different lengths, the shorter one will be repeated to match the length of the longer one. 
+
+```{r}
+x + c(-7,-8)
+x^c(1,0,-1,0.5)
+```
+
+Single numbers are vectors of length 1 for purposes of recycling:
+
+```{r}
+2 * x
+```
+
+===
+
+Can do component wise comparisons with vectors:
+
+```{r}
+x > 9
+```
+
+Logical operators also work elementwise:
+
+```{r}
+(x > 9) & (x < 20)
+```
+
+===
+
+Functions on vectors
+===
+
+Many functions can take vectors as arguments:
+
+- `mean()`, `median()`, `sd()`, `var()`, `max()`, `min()`, 
+`length()`, and `sum()` return single numbers
+- `sort()` returns a new vector
+- `hist()` takes a vector of numbers and produces a histogram, 
+a highly structured object, with the side effect of making a plot
+- `ecdf()` similarly produces a cumulative-density-function object
+- `summary()` gives a five-number summary of numerical vectors
+- `any()` and `all()` are useful on Boolean vectors
+
+Indexing vectors
+===
+
+Vector of indices:
+
+```{r}
+x[c(2,4)]
+```
+
+Vector of negative indices:
+
+```{r}
+x[c(-1,-3)]
+```
+
+Indexing with a Boolean vector:
+===
+
+
+```{r}
+x
+x > 9
+x[x > 9]
+y[x > 9]
+```
+
+`which()` gives the elements of a Boolean vector that are `TRUE`:
+
+```{r}
+places = which(x > 9)
+places
+y[places]
+```
+
+Named components
+===
+
+We can give names to elements/components of vectors, and index vectors accordingly
+
+```{r}
+names(x) = c("v1","v2","v3","fred")
+names(x)
+x[c("fred","v1")]
+```
+
+Note: here R is printing the labels, these are not additional components of `x`
+
+`names()` returns another vector (of characters):
+
+```{r}
+names(y) = names(x)
+sort(names(x))
+which(names(x) == "fred")
+```
+
+
+Matrix
+===
+
+A **matrix** is a specialization of a 2d array (or a 2d generalization of a vector). 
+- Handy for algebraic operation.
+- Highly efficient for numerical computation
+- Matrices do not need to be numeric (could be a matrix of characters). But all the elements must be of the same data type. 
+
+Creating a matrix
+===
+
+Useful to think of a matrix as a long vector that is being wrapped into a pre-specified number of rows and columns. 
+
+- Create a matrix using `matrix(x, nrow = , ncol =)`: 
+
+```{r}
+z.mat = matrix(c(40,1,60,3), nrow=2)
+z.mat
+is.array(z.mat)
+is.matrix(z.mat)
+```
+
+- Could also specify `ncol` for the number of columns
+- The wrapping is *along columns*. The proper terminology is that: an R matrix is **column-major**. Operations based on columns tend to be computationally faster than those based on rows. 
+- To fill by rows, use `byrow=TRUE` 
+- `matrix` will recycle the inputs until it has `nrow*ncol` elements, following the recycling rule. 
+
+Combining matrices and coverting matrices
+===
+ - `cbind` combines two (or more) matrices by column (i.e. matrices are put side-by-side and stuck together). 
+ - `rbind` combines two (or more) matrices by row (i.e. matrices are vertically stacked together).
+ - `c(A)` will flatten a matrix into a vector. Equivalently, `as.vector(A)` does the same thing. 
+ - `as.matrix` type-casts a vector into a matrix with a single column (values remain unchanged). 
+ 
+Matrix multiplication
+===
+
+Matrices have its own special multiplication operator, written `%*%`:
+
+```{r}
+six.sevens = matrix(rep(7,6), ncol=3)
+six.sevens
+z.mat %*% six.sevens # [2x2] * [2x3]
+```
+
+Can also multiply a matrix and a vector
+
+Row/column manipulations
+===
+
+Row/column sums, or row/column means:
+
+```{r}
+rowSums(z.mat)
+colSums(z.mat)
+rowMeans(z.mat)
+colMeans(z.mat)
+```
+
+Indexing matrices
+=== 
+
+Very similar to a vector, except now you need `[row,col]`. 
+
+```{r}
+z.mat 
+z.mat[1,2]
+```
+
+Can also index by names or by boolean vector. 
+```{r}
+which(z.mat>10)
+which(z.mat>10, arr.ind=TRUE)
+```
