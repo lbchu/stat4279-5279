@@ -1,0 +1,11 @@
+---
+title: "STAT 4279/5279: Statistical Computing"
+output:
+  html_document:
+    toc: false
+    theme: readable
+---
+
+## R Fundamentals
+- **R Basics**
+  - Slides: [R_Basics.html](R_Basics.html)
