@@ -11,4 +11,5 @@ output:
 - **Data Types and Operators**
   - [Slides](1-Fundamentals/R_Basics.html)
   - [Source](1-Fundamentals/R_Basics.Rmd)
+  - [Code](1-Fundamentals/code_R_Basics.R)
   
