@@ -6,6 +6,10 @@ output:
     theme: cosmo
 ---
 
+Welcome! This page contains links to lecture slides for **STAT 4279/5279**.
+
+All slides are provided as HTML and are best viewed in a modern web browser.
+
 
 ### Module 01: R Fundamentals
 - **Data Types and Operators**
@@ -13,3 +17,10 @@ output:
   - [Source](1-Fundamentals/R_Basics.Rmd)
   - [Code](1-Fundamentals/code_R_Basics.R)
   
+
+
+### Notes
+
+- Slides may be updated periodically.
+- Please refresh your browser if something looks out of date.
+- For questions, post on Ed Discussion or reach out to me directly.
