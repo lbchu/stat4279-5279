@@ -119,7 +119,7 @@ ls()              # what's currently defined?
 rm(x)             # remove one object
 ls()
 
-# Danger zone (do NOT run unless you mean it):
+# Removes everything
 # rm(list = ls())
 
 # ----------------------------------------------------------
