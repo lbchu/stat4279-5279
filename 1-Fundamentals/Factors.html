@@ -7,7 +7,7 @@
   <meta name="generator" content="pandoc" />
   <meta name="author" content="Statistical Computing for Data Analysis" />
   <meta name="font-size-adjustment" content="-1" />
-  <title>Data Structures: List and Data Frames</title>
+  <title>Data Structures: Factors in R</title>
   <style type="text/css">
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -524,7 +524,7 @@ list-style-type: none;
 </head>
 <body>
 <div class="slide titlepage">
-  <h1 class="title">Data Structures: List and Data Frames</h1>
+  <h1 class="title">Data Structures: Factors in R</h1>
   <p class="author">
 Statistical Computing for Data Analysis
   </p>
@@ -548,234 +548,56 @@ may have different types</p></li>
 A special object used to represent categorical data</p></li>
 </ul>
 </div>
-<div id="lists" class="slide section level1">
-<h1>Lists</h1>
-<p>A <strong>list</strong> is the most general form of vectors in R.</p>
-<p>List entries can be of any type and can have mixed types</p>
-<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a>l <span class="ot">&lt;-</span> <span class="fu">list</span>(<span class="dv">1</span><span class="sc">:</span><span class="dv">2</span>, <span class="fu">c</span>(<span class="st">&quot;hat&quot;</span>,<span class="st">&quot;mat&quot;</span>,<span class="st">&quot;dat&quot;</span>))</span>
-<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a>l</span></code></pre></div>
-<pre><code>## [[1]]
-## [1] 1 2
-## 
-## [[2]]
-## [1] &quot;hat&quot; &quot;mat&quot; &quot;dat&quot;</code></pre>
-<p>List entries can be named:</p>
-<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a>lNamed <span class="ot">&lt;-</span> <span class="fu">list</span>(<span class="at">foo =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">2</span>, <span class="at">bar =</span> <span class="fu">c</span>(<span class="st">&quot;hat&quot;</span>,<span class="st">&quot;mat&quot;</span>,<span class="st">&quot;dat&quot;</span>))</span>
-<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a></span>
-<span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a>lNamed</span></code></pre></div>
-<pre><code>## $foo
-## [1] 1 2
-## 
-## $bar
-## [1] &quot;hat&quot; &quot;mat&quot; &quot;dat&quot;</code></pre>
-<p>Most of what you can do with vectors you can also do with lists</p>
-</div>
-<div id="accessing-pieces-of-lists" class="slide section level1">
-<h1>Accessing pieces of lists</h1>
+<div id="factor" class="slide section level1">
+<h1>Factor</h1>
 <ul>
-<li>Can use <code>[ ]</code> as with vectors<br />
-</li>
-<li>Or use <code>[[ ]]</code>, but only with a single index
-<code>[[ ]]</code> drops names and structures, <code>[ ]</code> does
-not</li>
-</ul>
-<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a>l[<span class="dv">2</span>]</span></code></pre></div>
-<pre><code>## [[1]]
-## [1] &quot;hat&quot; &quot;mat&quot; &quot;dat&quot;</code></pre>
-<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a>l[[<span class="dv">2</span>]]</span></code></pre></div>
-<pre><code>## [1] &quot;hat&quot; &quot;mat&quot; &quot;dat&quot;</code></pre>
-<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a>l[[<span class="dv">2</span>]][<span class="dv">1</span>]</span></code></pre></div>
-<pre><code>## [1] &quot;hat&quot;</code></pre>
-</div>
-<div id="expanding-and-contracting-lists" class="slide section level1">
-<h1>Expanding and contracting lists</h1>
-<p>Add to lists with <code>c()</code> (also works with vectors):</p>
-<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" tabindex="-1"></a>l1 <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="fu">list</span>(<span class="cn">TRUE</span>),l)</span>
-<span id="cb11-2"><a href="#cb11-2" tabindex="-1"></a>l1</span></code></pre></div>
-<pre><code>## [[1]]
-## [1] TRUE
-## 
-## [[2]]
-## [1] 1 2
-## 
-## [[3]]
-## [1] &quot;hat&quot; &quot;mat&quot; &quot;dat&quot;</code></pre>
-<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" tabindex="-1"></a><span class="fu">str</span>(l1)</span></code></pre></div>
-<pre><code>## List of 3
-##  $ : logi TRUE
-##  $ : int [1:2] 1 2
-##  $ : chr [1:3] &quot;hat&quot; &quot;mat&quot; &quot;dat&quot;</code></pre>
-<p><code>append(x, values, after)</code> works similarly:</p>
-<div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" tabindex="-1"></a>l2 <span class="ot">&lt;-</span> <span class="fu">append</span>(l, <span class="fu">list</span>(<span class="cn">TRUE</span>),<span class="at">after =</span><span class="dv">0</span>)</span>
-<span id="cb15-2"><a href="#cb15-2" tabindex="-1"></a><span class="do">## after specifies the subscript position </span></span>
-<span id="cb15-3"><a href="#cb15-3" tabindex="-1"></a>l2</span></code></pre></div>
-<pre><code>## [[1]]
-## [1] TRUE
-## 
-## [[2]]
-## [1] 1 2
-## 
-## [[3]]
-## [1] &quot;hat&quot; &quot;mat&quot; &quot;dat&quot;</code></pre>
-<div class="sourceCode" id="cb17"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" tabindex="-1"></a><span class="fu">str</span>(l2)</span></code></pre></div>
-<pre><code>## List of 3
-##  $ : logi TRUE
-##  $ : int [1:2] 1 2
-##  $ : chr [1:3] &quot;hat&quot; &quot;mat&quot; &quot;dat&quot;</code></pre>
-<p>Set a list entry <code>NULL</code> in order to remove it:</p>
-<div class="sourceCode" id="cb19"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" tabindex="-1"></a>l1[<span class="dv">2</span><span class="sc">:</span><span class="dv">3</span>] <span class="ot">&lt;-</span> <span class="cn">NULL</span></span>
-<span id="cb19-2"><a href="#cb19-2" tabindex="-1"></a><span class="fu">str</span>(l1)</span></code></pre></div>
-<pre><code>## List of 1
-##  $ : logi TRUE</code></pre>
-</div>
-<div id="flattening-lists" class="slide section level1">
-<h1>Flattening lists</h1>
-<p><code>unlist</code> flattens a list into vector. If it contains mixed
-types, type conversion will be done automatically.</p>
-<div class="sourceCode" id="cb21"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" tabindex="-1"></a>l3 <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="fu">list</span>(<span class="dv">1</span>) ,l)</span>
-<span id="cb21-2"><a href="#cb21-2" tabindex="-1"></a>l3</span></code></pre></div>
-<pre><code>## [[1]]
-## [1] 1
-## 
-## [[2]]
-## [1] 1 2
-## 
-## [[3]]
-## [1] &quot;hat&quot; &quot;mat&quot; &quot;dat&quot;</code></pre>
-<div class="sourceCode" id="cb23"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" tabindex="-1"></a><span class="fu">unlist</span>(l3)</span></code></pre></div>
-<pre><code>## [1] &quot;1&quot;   &quot;1&quot;   &quot;2&quot;   &quot;hat&quot; &quot;mat&quot; &quot;dat&quot;</code></pre>
-</div>
-<div id="names-in-lists" class="slide section level1">
-<h1>Names in lists</h1>
-<p>We can name some or all of the elements of a list:</p>
-<div class="sourceCode" id="cb25"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" tabindex="-1"></a>my.dist <span class="ot">=</span> <span class="fu">list</span>(<span class="st">&quot;exponential&quot;</span>, <span class="dv">7</span>, <span class="cn">FALSE</span>)</span>
-<span id="cb25-2"><a href="#cb25-2" tabindex="-1"></a>my.dist</span></code></pre></div>
-<pre><code>## [[1]]
-## [1] &quot;exponential&quot;
-## 
-## [[2]]
-## [1] 7
-## 
-## [[3]]
-## [1] FALSE</code></pre>
-<div class="sourceCode" id="cb27"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" tabindex="-1"></a><span class="fu">names</span>(my.dist) <span class="ot">=</span> <span class="fu">c</span>(<span class="st">&quot;family&quot;</span>,<span class="st">&quot;mean&quot;</span>,<span class="st">&quot;is.symmetric&quot;</span>)</span>
-<span id="cb27-2"><a href="#cb27-2" tabindex="-1"></a>my.dist</span></code></pre></div>
-<pre><code>## $family
-## [1] &quot;exponential&quot;
-## 
-## $mean
-## [1] 7
-## 
-## $is.symmetric
-## [1] FALSE</code></pre>
-<div class="sourceCode" id="cb29"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" tabindex="-1"></a>my.dist[[<span class="st">&quot;family&quot;</span>]]</span></code></pre></div>
-<pre><code>## [1] &quot;exponential&quot;</code></pre>
-<div class="sourceCode" id="cb31"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" tabindex="-1"></a>my.dist[<span class="st">&quot;family&quot;</span>]</span></code></pre></div>
-<pre><code>## $family
-## [1] &quot;exponential&quot;</code></pre>
-<p>===</p>
-<p>In addition to indexing, lists have a special shortcut way of using
-names, with <code>$</code>:</p>
-<div class="sourceCode" id="cb33"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb33-1"><a href="#cb33-1" tabindex="-1"></a>my.dist[[<span class="st">&quot;family&quot;</span>]]</span></code></pre></div>
-<pre><code>## [1] &quot;exponential&quot;</code></pre>
-<div class="sourceCode" id="cb35"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb35-1"><a href="#cb35-1" tabindex="-1"></a>my.dist<span class="sc">$</span>family</span></code></pre></div>
-<pre><code>## [1] &quot;exponential&quot;</code></pre>
-<p>Adding named elements:</p>
-<div class="sourceCode" id="cb37"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb37-1"><a href="#cb37-1" tabindex="-1"></a>my.dist<span class="sc">$</span>was.estimated <span class="ot">=</span> <span class="cn">FALSE</span></span>
-<span id="cb37-2"><a href="#cb37-2" tabindex="-1"></a>my.dist[[<span class="st">&quot;last.updated&quot;</span>]] <span class="ot">=</span> <span class="st">&quot;2026-01-01&quot;</span></span></code></pre></div>
-</div>
-<div id="key-value-pairs" class="slide section level1">
-<h1>Key-value pairs</h1>
-<ul>
-<li>Lists give us a natural way to store and look up data by
-<em>name</em>, rather than by <em>position</em></li>
-<li>A really useful programming concept with many names:
-<strong>key-value pairs</strong>, i.e., <strong>dictionaries</strong>,
-or <strong>associative arrays</strong></li>
-<li>If all our distributions have components named <code>family</code>,
-we can look that up by name, without caring where it is (in what
-position it lies) in the list</li>
-</ul>
-<div class="sourceCode" id="cb38"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb38-1"><a href="#cb38-1" tabindex="-1"></a><span class="co"># Defining a list with named components (key-value pairs)</span></span>
-<span id="cb38-2"><a href="#cb38-2" tabindex="-1"></a>normal_dist <span class="ot">&lt;-</span> <span class="fu">list</span>(</span>
-<span id="cb38-3"><a href="#cb38-3" tabindex="-1"></a>  <span class="at">family =</span> <span class="st">&quot;Gaussian&quot;</span>,</span>
-<span id="cb38-4"><a href="#cb38-4" tabindex="-1"></a>  <span class="at">mean =</span> <span class="dv">0</span>,</span>
-<span id="cb38-5"><a href="#cb38-5" tabindex="-1"></a>  <span class="at">sd =</span> <span class="dv">1</span>,</span>
-<span id="cb38-6"><a href="#cb38-6" tabindex="-1"></a>  <span class="at">link =</span> <span class="st">&quot;identity&quot;</span></span>
-<span id="cb38-7"><a href="#cb38-7" tabindex="-1"></a>)</span>
-<span id="cb38-8"><a href="#cb38-8" tabindex="-1"></a></span>
-<span id="cb38-9"><a href="#cb38-9" tabindex="-1"></a><span class="co"># Retrieval by name (position-agnostic)</span></span>
-<span id="cb38-10"><a href="#cb38-10" tabindex="-1"></a>normal_dist<span class="sc">$</span>family</span></code></pre></div>
-<pre><code>## [1] &quot;Gaussian&quot;</code></pre>
-<div class="sourceCode" id="cb40"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb40-1"><a href="#cb40-1" tabindex="-1"></a><span class="co"># [1] &quot;Gaussian&quot;</span></span>
-<span id="cb40-2"><a href="#cb40-2" tabindex="-1"></a></span>
-<span id="cb40-3"><a href="#cb40-3" tabindex="-1"></a><span class="co"># Alternative syntax using character strings</span></span>
-<span id="cb40-4"><a href="#cb40-4" tabindex="-1"></a>normal_dist[[<span class="st">&quot;family&quot;</span>]]</span></code></pre></div>
-<pre><code>## [1] &quot;Gaussian&quot;</code></pre>
-<div class="sourceCode" id="cb42"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb42-1"><a href="#cb42-1" tabindex="-1"></a><span class="co"># [1] &quot;Gaussian&quot;</span></span></code></pre></div>
-</div>
-<div id="data-frames" class="slide section level1">
-<h1>Data frames</h1>
-<ul>
-<li><strong>The Canonical Data Structure</strong>: Represents the
-standard <span class="math inline">\(n \times p\)</span> data matrix,
-where <span class="math inline">\(n\)</span> rows correspond to
-observations (cases) and <span class="math inline">\(p\)</span> columns
-represent variables (features).</li>
-<li><strong>Statistical Standard:</strong> Most modeling and
-visualization functions in R (e.g., <code>lm()</code>,
-<code>ggplot2</code>) are designed specifically to operate on data
-frames as the primary input.</li>
-<li><strong>Heterogeneous Storage</strong>: Unlike a matrix, which
-requires all elements to be the same data type, a data frame allows each
-column to have a distinct type (e.g., numeric, factor, or character)
-while maintaining equal length. Each column operates like a separate
-vector.</li>
-<li>Data frames inherit behaviors from both lists and matrices; you can
-use matrix-like operations (e.g., <code>rowSums()</code>,
-<code>dim()</code>) and summary tools (e.g., <code>summary()</code>,
-<code>str()</code>) to audit your data efficiently.</li>
+<li><p>A type of data structure to indicate
+<strong>categories</strong></p></li>
+<li><p>Stores both <strong>levels</strong> and the
+<strong>order</strong> of the levels</p></li>
+<li><p>It is more than a character vector (which does not store the
+order information)</p></li>
+<li><p>The factor levels affect the behavior of the downstream
+function.</p></li>
 </ul>
 </div>
-<div id="matrix-vs.-data-frame" class="slide section level1">
-<h1>Matrix vs. Data frame</h1>
-<div class="sourceCode" id="cb43"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb43-1"><a href="#cb43-1" tabindex="-1"></a>a.mat <span class="ot">=</span> <span class="fu">matrix</span>(<span class="fu">c</span>(<span class="dv">35</span>,<span class="dv">8</span>,<span class="dv">10</span>,<span class="dv">4</span>), <span class="at">nrow=</span><span class="dv">2</span>)</span>
-<span id="cb43-2"><a href="#cb43-2" tabindex="-1"></a><span class="fu">colnames</span>(a.mat) <span class="ot">=</span> <span class="fu">c</span>(<span class="st">&quot;v1&quot;</span>,<span class="st">&quot;v2&quot;</span>)</span>
-<span id="cb43-3"><a href="#cb43-3" tabindex="-1"></a>a.mat</span></code></pre></div>
-<pre><code>##      v1 v2
-## [1,] 35 10
-## [2,]  8  4</code></pre>
-<div class="sourceCode" id="cb45"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb45-1"><a href="#cb45-1" tabindex="-1"></a>a.mat[,<span class="st">&quot;v1&quot;</span>] </span></code></pre></div>
-<pre><code>## [1] 35  8</code></pre>
-<div class="sourceCode" id="cb47"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb47-1"><a href="#cb47-1" tabindex="-1"></a><span class="co"># Try a.mat$v1 and see what happens</span></span>
-<span id="cb47-2"><a href="#cb47-2" tabindex="-1"></a>a.mat<span class="sc">$</span>v1</span>
-<span id="cb47-3"><a href="#cb47-3" tabindex="-1"></a></span>
-<span id="cb47-4"><a href="#cb47-4" tabindex="-1"></a>Error <span class="cf">in</span> a.mat<span class="sc">$</span>v1 <span class="sc">:</span> <span class="er">$</span> operator is invalid <span class="cf">for</span> atomic vectors</span></code></pre></div>
-<div class="sourceCode" id="cb48"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb48-1"><a href="#cb48-1" tabindex="-1"></a>a.df <span class="ot">=</span> <span class="fu">data.frame</span>(a.mat,<span class="at">logicals=</span><span class="fu">c</span>(<span class="cn">TRUE</span>,<span class="cn">FALSE</span>))</span>
-<span id="cb48-2"><a href="#cb48-2" tabindex="-1"></a>a.df</span></code></pre></div>
-<pre><code>##   v1 v2 logicals
-## 1 35 10     TRUE
-## 2  8  4    FALSE</code></pre>
-<div class="sourceCode" id="cb50"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb50-1"><a href="#cb50-1" tabindex="-1"></a>a.df<span class="sc">$</span>v1</span></code></pre></div>
-<pre><code>## [1] 35  8</code></pre>
-<div class="sourceCode" id="cb52"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb52-1"><a href="#cb52-1" tabindex="-1"></a>a.df[,<span class="st">&quot;v1&quot;</span>]</span></code></pre></div>
-<pre><code>## [1] 35  8</code></pre>
-<div class="sourceCode" id="cb54"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb54-1"><a href="#cb54-1" tabindex="-1"></a>a.df[<span class="dv">1</span>,]</span></code></pre></div>
-<pre><code>##   v1 v2 logicals
-## 1 35 10     TRUE</code></pre>
-<div class="sourceCode" id="cb56"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb56-1"><a href="#cb56-1" tabindex="-1"></a><span class="fu">colMeans</span>(a.df)</span></code></pre></div>
-<pre><code>##       v1       v2 logicals 
-##     21.5      7.0      0.5</code></pre>
+<div id="penguins-dataset" class="slide section level1">
+<h1>Penguins dataset</h1>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="fu">library</span>(ISLR2) </span>
+<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a><span class="fu">str</span>(Credit)</span></code></pre></div>
+<pre><code>## &#39;data.frame&#39;:    400 obs. of  11 variables:
+##  $ Income   : num  14.9 106 104.6 148.9 55.9 ...
+##  $ Limit    : num  3606 6645 7075 9504 4897 ...
+##  $ Rating   : num  283 483 514 681 357 569 259 512 266 491 ...
+##  $ Cards    : num  2 3 4 3 2 4 2 2 5 3 ...
+##  $ Age      : num  34 82 71 36 68 77 37 87 66 41 ...
+##  $ Education: num  11 15 11 11 16 10 12 9 13 19 ...
+##  $ Own      : Factor w/ 2 levels &quot;No&quot;,&quot;Yes&quot;: 1 2 1 2 1 1 2 1 2 2 ...
+##  $ Student  : Factor w/ 2 levels &quot;No&quot;,&quot;Yes&quot;: 1 2 1 1 1 1 1 1 1 2 ...
+##  $ Married  : Factor w/ 2 levels &quot;No&quot;,&quot;Yes&quot;: 2 2 1 1 2 1 1 1 1 2 ...
+##  $ Region   : Factor w/ 3 levels &quot;East&quot;,&quot;South&quot;,..: 2 3 3 3 2 2 1 3 2 1 ...
+##  $ Balance  : num  333 903 580 964 331 ...</code></pre>
 </div>
-<div id="similar-to-working-on-a-matrix" class="slide section level1">
-<h1>Similar to working on a matrix</h1>
+<div id="working-with-factors" class="slide section level1">
+<h1>Working with factors</h1>
 <ul>
-<li>All index rules for a matrix applies to a data frame</li>
-<li><code>df[,&quot;col&quot;]</code> return the column as a vector</li>
-<li><code>df[,&quot;col&quot;, drop=FALSE]</code> returns a data frame containing
-a single column. - For a computing task, you need to know what version
-you need.</li>
+<li><p><code>factor</code> creates a new factor with specified
+levels</p></li>
+<li><p><code>table</code>, <code>str</code> inspect a factor</p></li>
+<li><p><code>levels</code> extracts and <code>levels &lt;-</code> set
+the levels</p></li>
+<li><p><code>reorder(factor, numbers, FUN)</code> reorders a factor
+according to a summary statistic <code>FUN</code> of numbers.</p></li>
+<li><p>Keep in mind character, numeric variables, and factors are
+treated different in <code>R</code>.</p></li>
 </ul>
+</div>
+<div id="factors-in-r-functions" class="slide section level1">
+<h1>Factors in R functions</h1>
+<p>Many <code>R</code> functions behave nicely when applied on a
+factor.</p>
+<p>The order of factor levels can affect statistical interpretations and
+visualizations.</p>
 </div>
 
   <!-- dynamically load mathjax for compatibility with self-contained -->

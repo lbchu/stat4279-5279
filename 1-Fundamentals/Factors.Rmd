@@ -1,0 +1,63 @@
+---
+title: 'Data Structures: Factors in R'
+author: "Statistical Computing for Data Analysis"
+output:
+  slidy_presentation:
+    font_adjustment: -1
+  ioslides_presentation: default
+---
+
+Data Structures
+===
+Data types are the fundamental buildings. Data structures organize these data types. 
+## Common data structures in R
+
+- **Vector**  
+  A one-dimensional sequence of values, all of the same type
+
+- **Matrix**  
+  A two-dimensional array of values, all of the same type
+
+- **List**  
+  A collection of objects that can be of different types and structures
+
+- **Data frame**  
+  A table-like structure where each column is a vector;
+  different columns may have different types
+
+- **Factor**  
+  A special object used to represent categorical data
+
+
+Factor
+====
+- A type of data structure to indicate **categories**
+
+- Stores both **levels** and the **order** of the levels
+
+- It is more than a character vector (which does not store the order information)
+
+- The factor levels affect the behavior of the downstream function. 
+
+Penguins dataset
+===
+```{r}
+library(ISLR2) 
+str(Credit)
+```
+
+Working with factors
+===
+- `factor` creates a new factor with specified levels
+- `table`, `str` inspect a factor
+- `levels` extracts and `levels <-` set the levels
+- `reorder(factor, numbers, FUN)` reorders a factor according to a summary statistic `FUN` of numbers. 
+
+- Keep in mind character, numeric variables, and factors are treated different in `R`.
+
+Factors in R functions
+===
+
+Many `R` functions behave nicely when applied on a factor. 
+
+The order of factor levels can affect statistical interpretations and visualizations. 

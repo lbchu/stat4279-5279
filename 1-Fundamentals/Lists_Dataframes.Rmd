@@ -1,9 +1,10 @@
 ---
-title: "Data Structures: List and Data Frames"
+title: 'Data Structures: List and Data Frames'
 author: "Statistical Computing for Data Analysis"
 output:
   slidy_presentation:
-    font_adjustment: -1 # -1, 0, +1 for text size adjustment
+    font_adjustment: -1
+  ioslides_presentation: default
 ---
 
 Data Structures
@@ -137,9 +138,9 @@ my.dist[["last.updated"]] = "2026-01-01"
 Key-value pairs
 ===
   
-  - Lists give us a natural way to store and look up data by _name_, rather than by _position_
+- Lists give us a natural way to store and look up data by _name_, rather than by _position_
 - A really useful programming concept with many names: **key-value pairs**, i.e., **dictionaries**, or **associative arrays**
-  - If all our distributions have components named `family`, we can look that up by name, without caring where it is (in what position it lies) in the list
+- If all our distributions have components named `family`, we can look that up by name, without caring where it is (in what position it lies) in the list
 
 ```{r}
 # Defining a list with named components (key-value pairs)

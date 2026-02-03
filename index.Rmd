@@ -26,6 +26,11 @@ All slides are provided as HTML and are best viewed in a modern web browser.
   - [Slides](1-Fundamentals/Lists_Dataframes.html)
   - [Source](1-Fundamentals/Lists_Dataframes.Rmd)
   - [Code](1-Fundamentals/code_Lists_Dataframes.R)
+
+- **Factors**
+  - [Slides](1-Fundamentals/Factors.html)
+  - [Source](1-Fundamentals/Factors.Rmd)
+  - [Code](1-Fundamentals/code_Factors.R)
   
 ### Notes
 
