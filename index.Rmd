@@ -30,7 +30,7 @@ All slides are provided as HTML and are best viewed in a modern web browser.
 - **Factors**
   - [Slides](1-Fundamentals/Factors.html)
   - [Source](1-Fundamentals/Factors.Rmd)
-  - [Code](1-Fundamentals/code_Factors.R)
+  - [Code1](1-Fundamentals/code_Factors.R) and [Code2](1-Fundamentals/code_more_Factors.R)
   
 ### Notes
 

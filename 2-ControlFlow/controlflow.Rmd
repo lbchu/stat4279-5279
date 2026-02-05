@@ -1,0 +1,245 @@
+---
+title: 'Control Flow: Conditional Statements and Iteration'
+author: "Statistical Computing for Data Analysis"
+output:
+  slidy_presentation:
+    font_adjustment: -1
+  ioslides_presentation: default
+---
+
+`if()` and `else`
+===
+Use `if()` and `else` to decide whether to evaluate one block of code or another, depending on a condition
+
+```{r}
+x = 0.5
+
+if (x >= 0) {
+  x
+} else {
+  -x
+}
+```
+
+- Condition in `if()` needs to give one `TRUE` or `FALSE` value
+- Note that the `else` statement is optional
+
+`else if()`
+===
+We can use `else if()` arbitrarily many times following an `if()` statement
+
+```{r}
+x = -2
+
+if (x^2 < 1) {
+  x^2 
+} else if (x >= 1) {
+  2*x-1
+} else {
+ -2*x+1
+}
+```
+
+- Each `else if()` only gets considered if the conditions above it were not `TRUE`
+- The `else` statement gets evaluated if none of the above conditions were `TRUE`
+- Note again that the `else` statement is optional 
+
+Another example: 
+```{r}
+today <- "Tuesday"
+if (today == "Monday") {
+  writeLines("Tell me a joke")
+} else if (today == "Tuesday") {
+  writeLines("Work work")
+} else if (today == "Friday") {
+  writeLines("Ready to break")
+} else {
+  writeLines("Have some fun")
+}
+```
+
+Quick decision making
+===
+
+In the `ifelse()` function we specify a condition, then a value if the condition holds, and a value if the condition fails
+
+```{r}
+ifelse(x > 0, x, -x)
+```
+
+One advantage of `ifelse()` is that it vectorizes nicely
+
+Short-circuiting logical operations
+===
+
+We now look at && and ||, which are short-circuiting logical operations
+
+  - && and || operate on a pair of logical scalars
+  - & and | operate on a pair of logical vectors
+
+```{r}
+u.vec = runif(10, -1, 1)
+u.vec
+u.vec[-0.5 <= u.vec & u.vec <= 0.5] = 999 ## evaluates elementwise
+u.vec
+```
+
+```{r}
+u.vec
+# Safe guard using &&: If length(u.vec) > 0 is FALSE, R never evaluates min(u.vec)
+if (length(u.vec) > 0 && min(u.vec) < 0) {
+  print("Vector has at least one negative value.")
+}
+
+```
+
+- For &&, if the first condition evaluates to FALSE (enough to determine the outcome), then the second condition will not be evaluated
+
+```{r}
+u.vec
+# Check whether we should skip further computation
+if (any(u.vec > 0.9) || mean(u.vec) > 0.5) {
+  print("Large values detected.")
+}
+
+```
+- Similarly, for ||, if the first condition evaluates to TRUE, then the second condition will not be evaluated
+
+- Rule of thumb: use `&` and `|` for indexing or subsetting, and `&&` and `||` for conditionals
+
+# Iteration
+
+## Why iteration matters
+
+Computers excel at doing the *same simple operation repeatedly* without getting tired or distracted. Humans do not. Iteration is therefore one of the core ideas behind programming: we write a rule once, and let the computer apply it many times.
+
+In R, there are several ways to express iteration. Choosing the right one affects clarity, correctness, and performance.
+
+**Main iteration paradigms in R:**
+
+- **`for()` and `while()` loops**: explicit, step-by-step control of repetition
+- **Vectorization**: operating on entire vectors at once (preferred whenever feasible)
+- **The `apply()` family**: base R alternatives to explicit loops
+
+We will start with explicit loops, because they make the logic of iteration transparent.
+
+
+`for()` loops
+===
+
+A `for()` loop iterates a *counter variable* over a vector. On each iteration, the loop executes a block of code (the **body**) using the current value of the counter.
+
+```r
+n <- 10
+log.vec <- vector(length = n, mode = "numeric")
+
+for (i in 1:n) {
+  log.vec[i] <- log(i)
+}
+
+log.vec
+```
+
+- `i` is the **counter**
+- `1:n` is the vector being iterated over
+- The code inside `{}` is the **body** of the loop
+
+This pattern—*initialize, iterate, update*—is extremely common.
+
+
+Exiting a loop early: `break`
+===
+Sometimes we want to stop iterating as soon as a condition is met. The `break` statement immediately exits the loop.
+
+```{r}
+n <- 10
+log.vec <- vector(length = n, mode = "numeric")
+
+for (i in 1:n) {
+  if (log(i) > 2) {
+    cat("Stopping early: log(i) exceeded 2\n")
+    break
+  }
+  log.vec[i] <- log(i)
+}
+
+log.vec
+```
+
+This is useful when:
+- continuing the loop would be wasteful, or
+- the stopping point is data-dependent
+
+
+Non-numeric counters
+===
+
+The counter variable does **not** have to be numeric. It simply takes values from a vector.
+
+```r
+for (name in c("Mon", "Wed", "Fri")) {
+  cat(name, "declined to comment\n")
+}
+```
+
+This is often clearer than looping over indices.
+
+Nested loops
+===
+
+A loop body can itself contain another loop.
+
+```r
+for (i in 1:4) {
+  for (j in 1:(i^2)) {
+    cat(j, " ")
+  }
+  cat("\n")
+}
+```
+
+`while()` loops
+===
+
+A `while()` loop repeats its body **as long as a condition remains true**. The number of iterations is not fixed in advance.
+
+```{r}
+i <- 1
+log.vec <- c()
+
+while (log(i) <= 2) {
+  log.vec <- c(log.vec, log(i))
+  i <- i + 1
+}
+
+log.vec
+```
+
+Key features:
+- The stopping rule is evaluated *before each iteration*
+- You must manually update variables so that the condition eventually becomes false
+
+
+`for()` versus `while()`
+===
+
+Use a **`for()` loop** when:
+- the number of iterations is known in advance, or
+- you are iterating over a fixed vector
+
+Use a **`while()` loop** when:
+- you only know how to stop *once you get there*
+
+Conceptually:
+- Every `for()` loop can be rewritten as a `while()` loop
+- Not every `while()` loop can be rewritten as a `for()` loop
+
+Takeaways
+===
+
+- Loops express iteration explicitly and transparently
+- `for()` loops are the default choice when structure is clear
+- `while()` loops handle data-dependent stopping rules
+- Many looping tasks in R are better handled later using vectorization or functional tools—but understanding loops is foundational
+
+
