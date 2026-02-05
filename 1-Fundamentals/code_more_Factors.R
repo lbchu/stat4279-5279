@@ -1,6 +1,9 @@
 ############################################################
 ## Credit data: lm() vs manual dummy variables + matrix algebra
 ############################################################
+# Uncomment this if you've never used this package
+# Note: you only need to install a package once
+## install.packages("ISLR2") 
 
 library(ISLR2)
 
