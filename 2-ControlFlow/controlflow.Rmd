@@ -189,8 +189,18 @@ for (name in c("Mon", "Wed", "Fri")) {
   cat(name, "declined to comment\n")
 }
 ```
-
 This is often clearer than looping over indices.
+
+An even safer version is to use `seq_along`.  
+```{r}
+x <- c(10, 20, 30)
+out <- numeric(length(x))
+
+
+for (i in seq_along(x)) {
+out[i] <- log(x[i])
+}
+```
 
 Nested loops
 ===
