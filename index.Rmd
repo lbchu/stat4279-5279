@@ -33,6 +33,13 @@ All slides are provided as HTML and are best viewed in a modern web browser.
   - [Code1](1-Fundamentals/code_Factors.R) and [Code2](1-Fundamentals/code_more_Factors.R)
   - [Notes](1-Fundamentals/Factor_encoding.pdf)
 
+### Module 02: Control Flow
+
+- **Conditionals and Iteration**
+  - [Slides](1-Fundamentals/controlflow.html)
+  - [Source](1-Fundamentals/controlflow.Rmd)
+  - [Code](1-Fundamentals/code_controlflow.R) 
+
 ### Notes
 
 - Slides may be updated periodically.
