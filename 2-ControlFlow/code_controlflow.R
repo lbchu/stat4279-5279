@@ -15,9 +15,9 @@ if (!is.numeric(x)) {
 }
 
 if (x >= 0) {
-  abs_x <- x
+  abs_x = x
 } else {
-  abs_x <- -x
+  abs_x = -x
 }
 
 abs_x
@@ -111,7 +111,7 @@ row_means
 
 x <- c(1, 4, 6)
 
-D <- matrix(NA_real_, nrow = length(x), ncol = length(x))
+D <- matrix(NA, nrow = length(x), ncol = length(x))
 for (i in seq_along(x)) {
   for (j in seq_along(x)) {
     D[i, j] <- abs(x[i] - x[j])

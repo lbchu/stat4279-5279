@@ -36,9 +36,9 @@ All slides are provided as HTML and are best viewed in a modern web browser.
 ### Module 02: Control Flow
 
 - **Conditionals and Iteration**
-  - [Slides](1-Fundamentals/controlflow.html)
-  - [Source](1-Fundamentals/controlflow.Rmd)
-  - [Code](1-Fundamentals/code_controlflow.R) 
+  - [Slides](2-ControlFlow/controlflow.html)
+  - [Source](2-ControlFlow/controlflow.Rmd)
+  - [Code](2-ControlFlow/code_controlflow.R) 
 
 ### Notes
 
