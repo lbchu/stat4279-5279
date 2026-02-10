@@ -608,12 +608,12 @@ operations</p>
 </ul>
 <div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" tabindex="-1"></a>u.vec <span class="ot">=</span> <span class="fu">runif</span>(<span class="dv">10</span>, <span class="sc">-</span><span class="dv">1</span>, <span class="dv">1</span>)</span>
 <span id="cb11-2"><a href="#cb11-2" tabindex="-1"></a>u.vec</span></code></pre></div>
-<pre><code>##  [1]  0.9584573 -0.7929447  0.5923339 -0.1462205 -0.2144987  0.3933998
-##  [7]  0.3050002  0.1565325  0.4303772 -0.7034948</code></pre>
+<pre><code>##  [1] -0.75662212  0.92294840  0.59441825 -0.47996279  0.96036631  0.93355339
+##  [7] -0.07912738 -0.43504643  0.78837091 -0.92633925</code></pre>
 <div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" tabindex="-1"></a>u.vec[<span class="sc">-</span><span class="fl">0.5</span> <span class="sc">&lt;=</span> u.vec <span class="sc">&amp;</span> u.vec <span class="sc">&lt;=</span> <span class="fl">0.5</span>] <span class="ot">=</span> <span class="dv">999</span> <span class="do">## evaluates elementwise</span></span>
 <span id="cb13-2"><a href="#cb13-2" tabindex="-1"></a>u.vec</span></code></pre></div>
-<pre><code>##  [1]   0.9584573  -0.7929447   0.5923339 999.0000000 999.0000000 999.0000000
-##  [7] 999.0000000 999.0000000 999.0000000  -0.7034948</code></pre>
+<pre><code>##  [1]  -0.7566221   0.9229484   0.5944182 999.0000000   0.9603663   0.9335534
+##  [7] 999.0000000 999.0000000   0.7883709  -0.9263393</code></pre>
 <div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" tabindex="-1"></a><span class="co"># Safe guard using &amp;&amp;: If length(u.vec) &gt; 0 is FALSE, R never evaluates min(u.vec)</span></span>
 <span id="cb15-2"><a href="#cb15-2" tabindex="-1"></a><span class="cf">if</span> (<span class="fu">length</span>(u.vec) <span class="sc">&gt;</span> <span class="dv">0</span> <span class="sc">&amp;&amp;</span> <span class="fu">min</span>(u.vec) <span class="sc">&lt;</span> <span class="dv">0</span>) {</span>
 <span id="cb15-3"><a href="#cb15-3" tabindex="-1"></a>  <span class="fu">print</span>(<span class="st">&quot;Vector has at least one negative value.&quot;</span>)</span>
@@ -625,8 +625,8 @@ determine the outcome), then the second condition will not be
 evaluated</li>
 </ul>
 <div class="sourceCode" id="cb17"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" tabindex="-1"></a>u.vec</span></code></pre></div>
-<pre><code>##  [1]   0.9584573  -0.7929447   0.5923339 999.0000000 999.0000000 999.0000000
-##  [7] 999.0000000 999.0000000 999.0000000  -0.7034948</code></pre>
+<pre><code>##  [1]  -0.7566221   0.9229484   0.5944182 999.0000000   0.9603663   0.9335534
+##  [7] 999.0000000 999.0000000   0.7883709  -0.9263393</code></pre>
 <div class="sourceCode" id="cb19"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" tabindex="-1"></a><span class="co"># Check whether we should skip further computation</span></span>
 <span id="cb19-2"><a href="#cb19-2" tabindex="-1"></a><span class="cf">if</span> (<span class="fu">any</span>(u.vec <span class="sc">&gt;</span> <span class="fl">0.9</span>) <span class="sc">||</span> <span class="fu">mean</span>(u.vec) <span class="sc">&gt;</span> <span class="fl">0.5</span>) {</span>
 <span id="cb19-3"><a href="#cb19-3" tabindex="-1"></a>  <span class="fu">print</span>(<span class="st">&quot;Large values detected.&quot;</span>)</span>
