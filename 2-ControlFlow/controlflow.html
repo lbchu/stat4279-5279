@@ -608,12 +608,12 @@ operations</p>
 </ul>
 <div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" tabindex="-1"></a>u.vec <span class="ot">=</span> <span class="fu">runif</span>(<span class="dv">10</span>, <span class="sc">-</span><span class="dv">1</span>, <span class="dv">1</span>)</span>
 <span id="cb11-2"><a href="#cb11-2" tabindex="-1"></a>u.vec</span></code></pre></div>
-<pre><code>##  [1] -0.75662212  0.92294840  0.59441825 -0.47996279  0.96036631  0.93355339
-##  [7] -0.07912738 -0.43504643  0.78837091 -0.92633925</code></pre>
+<pre><code>##  [1]  0.88384946  0.66995706 -0.82529685 -0.97272948 -0.09800783  0.60526684
+##  [7] -0.82985530  0.42879982  0.38784757 -0.75970069</code></pre>
 <div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" tabindex="-1"></a>u.vec[<span class="sc">-</span><span class="fl">0.5</span> <span class="sc">&lt;=</span> u.vec <span class="sc">&amp;</span> u.vec <span class="sc">&lt;=</span> <span class="fl">0.5</span>] <span class="ot">=</span> <span class="dv">999</span> <span class="do">## evaluates elementwise</span></span>
 <span id="cb13-2"><a href="#cb13-2" tabindex="-1"></a>u.vec</span></code></pre></div>
-<pre><code>##  [1]  -0.7566221   0.9229484   0.5944182 999.0000000   0.9603663   0.9335534
-##  [7] 999.0000000 999.0000000   0.7883709  -0.9263393</code></pre>
+<pre><code>##  [1]   0.8838495   0.6699571  -0.8252969  -0.9727295 999.0000000   0.6052668
+##  [7]  -0.8298553 999.0000000 999.0000000  -0.7597007</code></pre>
 <div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" tabindex="-1"></a><span class="co"># Safe guard using &amp;&amp;: If length(u.vec) &gt; 0 is FALSE, R never evaluates min(u.vec)</span></span>
 <span id="cb15-2"><a href="#cb15-2" tabindex="-1"></a><span class="cf">if</span> (<span class="fu">length</span>(u.vec) <span class="sc">&gt;</span> <span class="dv">0</span> <span class="sc">&amp;&amp;</span> <span class="fu">min</span>(u.vec) <span class="sc">&lt;</span> <span class="dv">0</span>) {</span>
 <span id="cb15-3"><a href="#cb15-3" tabindex="-1"></a>  <span class="fu">print</span>(<span class="st">&quot;Vector has at least one negative value.&quot;</span>)</span>
@@ -625,8 +625,8 @@ determine the outcome), then the second condition will not be
 evaluated</li>
 </ul>
 <div class="sourceCode" id="cb17"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" tabindex="-1"></a>u.vec</span></code></pre></div>
-<pre><code>##  [1]  -0.7566221   0.9229484   0.5944182 999.0000000   0.9603663   0.9335534
-##  [7] 999.0000000 999.0000000   0.7883709  -0.9263393</code></pre>
+<pre><code>##  [1]   0.8838495   0.6699571  -0.8252969  -0.9727295 999.0000000   0.6052668
+##  [7]  -0.8298553 999.0000000 999.0000000  -0.7597007</code></pre>
 <div class="sourceCode" id="cb19"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" tabindex="-1"></a><span class="co"># Check whether we should skip further computation</span></span>
 <span id="cb19-2"><a href="#cb19-2" tabindex="-1"></a><span class="cf">if</span> (<span class="fu">any</span>(u.vec <span class="sc">&gt;</span> <span class="fl">0.9</span>) <span class="sc">||</span> <span class="fu">mean</span>(u.vec) <span class="sc">&gt;</span> <span class="fl">0.5</span>) {</span>
 <span id="cb19-3"><a href="#cb19-3" tabindex="-1"></a>  <span class="fu">print</span>(<span class="st">&quot;Large values detected.&quot;</span>)</span>
@@ -651,12 +651,12 @@ write a rule once, and let the computer apply it many times.</p>
 one affects clarity, correctness, and performance.</p>
 <p><strong>Main iteration paradigms in R:</strong></p>
 <ul>
-<li><strong><code>for()</code> and <code>while()</code> loops</strong>:
-explicit, step-by-step control of repetition</li>
-<li><strong>Vectorization</strong>: operating on entire vectors at once
-(preferred whenever feasible)</li>
-<li><strong>The <code>apply()</code> family</strong>: base R
-alternatives to explicit loops</li>
+<li><p><strong><code>for()</code> and <code>while()</code>
+loops</strong>: explicit, step-by-step control of repetition</p></li>
+<li><p><strong>Vectorization</strong>: operating on entire vectors at
+once (preferred whenever feasible)</p></li>
+<li><p><strong>The <code>apply()</code> family</strong>: base R
+alternatives to explicit loops</p></li>
 </ul>
 <p>We will start with explicit loops, because they make the logic of
 iteration transparent.</p>
@@ -703,8 +703,11 @@ The <code>break</code> statement immediately exits the loop.</p>
 <div class="sourceCode" id="cb25"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" tabindex="-1"></a>log.vec</span></code></pre></div>
 <pre><code>##  [1] 0.0000000 0.6931472 1.0986123 1.3862944 1.6094379 1.7917595 1.9459101
 ##  [8] 0.0000000 0.0000000 0.0000000</code></pre>
-<p>This is useful when: - continuing the loop would be wasteful, or -
-the stopping point is data-dependent</p>
+<p>This is useful when:</p>
+<ul>
+<li><p>continuing the loop would be wasteful, or</p></li>
+<li><p>the stopping point is data-dependent</p></li>
+</ul>
 </div>
 <div id="non-numeric-counters" class="slide section level1">
 <h1>Non-numeric counters</h1>
@@ -752,20 +755,30 @@ in advance.</p>
 <span id="cb31-8"><a href="#cb31-8" tabindex="-1"></a></span>
 <span id="cb31-9"><a href="#cb31-9" tabindex="-1"></a>log.vec</span></code></pre></div>
 <pre><code>## [1] 0.0000000 0.6931472 1.0986123 1.3862944 1.6094379 1.7917595 1.9459101</code></pre>
-<p>Key features: - The stopping rule is evaluated <em>before each
-iteration</em> - You must manually update variables so that the
-condition eventually becomes false</p>
+<p>Key features:</p>
+<ul>
+<li><p>The stopping rule is evaluated <em>before each
+iteration</em></p></li>
+<li><p>You must manually update variables so that the condition
+eventually becomes false</p></li>
+</ul>
 </div>
 <div id="for-versus-while" class="slide section level1">
 <h1><code>for()</code> versus <code>while()</code></h1>
 <p>Use a <strong><code>for()</code> loop</strong> when: - the number of
-iterations is known in advance, or - you are iterating over a fixed
-vector</p>
+iterations is known in advance, or</p>
+<ul>
+<li>you are iterating over a fixed vector</li>
+</ul>
 <p>Use a <strong><code>while()</code> loop</strong> when: - you only
 know how to stop <em>once you get there</em></p>
-<p>Conceptually: - Every <code>for()</code> loop can be rewritten as a
-<code>while()</code> loop - Not every <code>while()</code> loop can be
-rewritten as a <code>for()</code> loop</p>
+<p>Conceptually:</p>
+<ul>
+<li><p>Every <code>for()</code> loop can be rewritten as a
+<code>while()</code> loop</p></li>
+<li><p>Not every <code>while()</code> loop can be rewritten as a
+<code>for()</code> loop</p></li>
+</ul>
 </div>
 <div id="takeaways" class="slide section level1">
 <h1>Takeaways</h1>

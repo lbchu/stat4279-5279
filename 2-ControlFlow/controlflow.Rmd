@@ -127,7 +127,9 @@ In R, there are several ways to express iteration. Choosing the right one affect
 **Main iteration paradigms in R:**
 
 - **`for()` and `while()` loops**: explicit, step-by-step control of repetition
+
 - **Vectorization**: operating on entire vectors at once (preferred whenever feasible)
+
 - **The `apply()` family**: base R alternatives to explicit loops
 
 We will start with explicit loops, because they make the logic of iteration transparent.
@@ -175,7 +177,9 @@ log.vec
 ```
 
 This is useful when:
+
 - continuing the loop would be wasteful, or
+
 - the stopping point is data-dependent
 
 
@@ -234,7 +238,9 @@ log.vec
 ```
 
 Key features:
+
 - The stopping rule is evaluated *before each iteration*
+
 - You must manually update variables so that the condition eventually becomes false
 
 
@@ -243,13 +249,16 @@ Key features:
 
 Use a **`for()` loop** when:
 - the number of iterations is known in advance, or
+
 - you are iterating over a fixed vector
 
 Use a **`while()` loop** when:
 - you only know how to stop *once you get there*
 
 Conceptually:
+
 - Every `for()` loop can be rewritten as a `while()` loop
+
 - Not every `while()` loop can be rewritten as a `for()` loop
 
 Takeaways
