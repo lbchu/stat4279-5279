@@ -14,7 +14,7 @@ R offers a family of **apply functions**, which allow you to apply a function ac
 
 - `apply()`: apply a function to rows or columns of a matrix or data frame
 - `lapply()`: apply a function to elements of a list or vector
-- `sapply()`: same as the above, but simplify the output (if possible)
+- `sapply()` and `vapply()`: same as the above, but simplify the output (if possible)
 - `tapply()`: apply a function to levels of a factor vector
 
 `apply()`: rows or columns of a matrix or data frame
@@ -26,6 +26,10 @@ The `apply()` function takes inputs of the following form:
 - `apply(x, MARGIN=2, FUN=my.fun)`, to apply `my.fun()` across columns of a matrix or data frame `x`
 
 ```{r}
+set.seed(123)
+
+X <- matrix(rnorm(20), nrow = 5, ncol = 4)
+
 out <- numeric(nrow(X))
 
 for (i in 1:nrow(X)) {
@@ -46,66 +50,6 @@ apply(state.x77, MARGIN=2, FUN=max) # Maximum entry in each column
 apply(state.x77, MARGIN=2, FUN=which.max) # Index of the max in each column
 ```
 
-Applying a custom function 
-===
-
-For a custom function, we can just define it before hand, and the use `apply()` as usual
-
-```{r}
-# Our custom function: trimmed mean
-trimmed.mean = function(v) {  
-  q1 = quantile(v, prob=0.1)
-  q2 = quantile(v, prob=0.9)
-  return(mean(v[q1 <= v & v <= q2]))
-}
-
-apply(state.x77, MARGIN=2, FUN=trimmed.mean) 
-```
-
-We'll learn more about functions later (don't worry too much at this point about the details of the function definition)
-
-Applying a custom function "on-the-fly"
-===
-
-Instead of defining a custom function before hand, we can just define it "on-the-fly". Sometimes this is more convenient
-
-```{r}
-# Compute trimmed means, defining this on-the-fly
-apply(state.x77, MARGIN=2, FUN=function(v) { 
-  q1 = quantile(v, prob=0.1)
-  q2 = quantile(v, prob=0.9)
-  return(mean(v[q1 <= v & v <= q2]))
-})
-```
-
-Applying a function that takes extra arguments
-===
-
-Can tell `apply()` to pass **extra arguments** to the function in question. E.g., can use: `apply(x, MARGIN=1, FUN=my.fun, extra.arg.1, extra.arg.2)`, for two extra arguments `extra.arg.1`, `extra.arg.2` to be passed to `my.fun()`
-
-```{r}
-# Our custom function: trimmed mean, with user-specified percentiles
-trimmed.mean = function(v, p1, p2) {
-  q1 = quantile(v, prob=p1)
-  q2 = quantile(v, prob=p2)
-  return(mean(v[q1 <= v & v <= q2]))
-}
-
-apply(state.x77, MARGIN=2, FUN=trimmed.mean, p1=0.01, p2=0.99)
-```
-
-What's the return argument?
-===
-
-What kind of data type will `apply()` give us? Depends on what function we pass. Summary, say, with `FUN=my.fun()`:
-
-- If `my.fun()` returns a single value, then `apply()` will return a vector
-- If `my.fun()` returns k values, then `apply()` will return a matrix with k rows (note: this is true *regardless* of whether `MARGIN=1` or `MARGIN=2`)
-- If `my.fun()` returns different length outputs for different inputs, then `apply()` will return a list
-- If `my.fun()` returns a list, then `apply()` will return a list
-
-We'll grapple with this on the lab. This is one main advantage of `purrr` package: there is a much more transparent return object type
-
 Optimized functions for special tasks
 ===
 
@@ -125,43 +69,129 @@ apply(x, MARGIN=1, function(v) { return(sum(v > 0)) })
 rowSums(x > 0)
 ```
 
-<span style="color: blue">Part III</span>
-===
-
-<span style="color: blue">*`lapply()`, `sapply()`, `tapply()`*</span>
-
-
 `lapply()`: elements of a list or vector
 ===
 
-The `lapply()` function takes inputs as in: `lapply(x, FUN=my.fun)`, to apply `my.fun()` across elements of a list or vector `x`. The output is always a list
+`lapply()` applies a function to each element of a list (or vector, which is treated as a list of length-1 elements).
+
+Suppose we have a function called `my.fun()`. Don't worry about this syntax too much yet, we'll talk about how to define custom functions in the next set of slides. 
 
 ```{r}
-my.list
-lapply(my.list, FUN=mean) # Get a warning: mean() can't be applied to chars
-lapply(my.list, FUN=summary)
+my_fun <- function(x) {
+  mean(x) + sd(x)
+}
+
+my_list <- list(a = 1:5, b = 1:10, c = rnorm(20))
+my_list
 ```
+
+```{r}
+out <- vector("list", length(my_list))
+
+for (i in 1:length(my_list)) {
+  out[[i]] <- my_fun(my_list[[i]])
+}
+
+out
+```
+
+`lapply()` version: 
+```{r}
+out <- lapply(my_list, my_fun)
+out
+```
+
+`lapply()` is still a loop. The counter is hidden.
+
+
+```{r}
+
+lapply(my_list, mean)
+lapply(my_list, length)
+
+```
+Note: the output is always a list.
 
 `sapply()`: elements of a list or vector
 ===
 
 The `sapply()` function works just like `lapply()`, but tries to **simplify** the return value whenever possible. E.g., most common is the conversion from a list to a vector
 
+- If results are length 1 --> returns a vector
+
+- If results are same length > 1 --> returns a matrix
+ 
+- Otherwise --> returns a list
+
+Observe the difference in structure.
+
 ```{r}
-sapply(my.list, FUN=mean) # Simplifies the result, now a vector
-sapply(my.list, FUN=summary) # Can't simplify, so still a list
+my_list <- list(a = 1:5, b = 1:10, c = rnorm(20))
+
+lapply(my_list, FUN=mean)
+sapply(my_list, FUN=mean) # Simplifies the result, now a vector
 ```
+
+Why be cautious with `sapply()`?
+
+Because the output type depends on the result.
+This can cause subtle bugs if structure changes.
+
+For example:
+
+```{r}
+lapply(my_list, FUN=summary) 
+sapply(my_list, FUN=summary) # Can't simplify, so still a list
+```
+The output may be a matrix — or not — depending on what `summary()` returns.
+
+
+`vapply()`: Type-safe version of `sapply()`
+===
+`vapply()` is a safer version of `sapply()`.
+
+You must explicitly specify the expected output type.
+
+Form:
+`vapply(X, FUN, FUN.VALUE = numeric(1))`
+
+`FUN.VALUE` tells R what each return value should look like.
+
+```{r}
+vapply(my_list, mean, FUN.VALUE = numeric(1))
+```
+
+This guarantees:
+
+  - Each element returns a numeric scalar
+  - Output will be a numeric vector
+  - If a function returns the wrong type or length, R throws an error.
+
+More robust inside larger functions. 
 
 `tapply()`: levels of a factor vector
 ===
 
-The function `tapply()` takes inputs as in: `tapply(x, INDEX=my.index, FUN=my.fun)`, to apply `my.fun()` to subsets of entries in `x` that share a common level in `my.index`
+`tapply()` applies a function to subsets of a vector defined by a factor.
+
+Form: `tapply(X, INDEX = group, FUN = my.fun)`
 
 ```{r}
 # Compute the mean and sd of the Frost variable, within each region
 tapply(state.x77[,"Frost"], INDEX=state.region, FUN=mean)
 tapply(state.x77[,"Frost"], INDEX=state.region, FUN=sd)
 ```
+
+```{r}
+class(state.region)
+table(state.region)
+```
+
+Equivalent loop logic:
+
+  1. Split vector by group
+  2. Apply function within each group
+  3. Collect results
 
 `split()`: split by levels of a factor
 ===
@@ -192,14 +222,37 @@ lapply(state.by.reg, FUN=function(df) {
 })
 ```
 
-Summary
+Conceptual hierarchy
 ===
 
-- Data frames are a representation of the "classic" data table in R: rows are observations/cases, columns are variables/features
-- Each column can be a different data type (but must be the same length)
-- `subset()`: function for extracting rows of a data frame meeting a condition 
-- `split()`: function for splitting up rows of a data frame, according to a factor variable
-- `apply()`: function for applying a given routine to rows or columns of a matrix or data frame
-- `lapply()`: similar, but used for applying a routine to elements of a vector or list
-- `sapply()`: similar, but will try to simplify the return type, in comparison to `lapply()`
-- `tapply()`: function for applying a given routine to groups of elements in a vector or list, according to a factor variable
+These functions are structured abstractions over loops:
+
+  - for() → explicit iteration
+
+  - apply() → loop over rows/column
+
+  - lapply() → loop over list elements
+
+  - sapply() → loop + auto-simplify
+
+  - vapply() → loop + enforced type
+
+  - tapply() → loop over groups
+
+All of them are still iteration.
+
+The only thing removed is the visible counter.
+
+When should you use `apply()` vs `for()`?
+===
+Use `for()` when:
+
+  - The logic is complex
+  - You need conditional branching
+  - You need multiple outputs
+  - You are debugging
+
+Use `apply()` family when:
+  - The operation is clean and repeated
+  - The structure is regular
+  - The loop body is simple
