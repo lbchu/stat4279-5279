@@ -1,0 +1,239 @@
+---
+title: 'Writing Functions in R'
+author: "Statistical Computing for Data Analysis"
+output:
+  slidy_presentation:
+    font_adjustment: -1
+  ioslides_presentation: default
+---
+
+## Why write functions?
+
+As your code grows, copy/paste becomes a problem:
+
+- **Bugs multiply**: fixing one copy doesn’t fix the others
+- **Hard to read**: long scripts hide the main idea
+- **Hard to reuse**: you can’t easily apply the same logic to new data
+
+A **function** lets you:
+
+- package a task with a clear input → output
+- reuse code safely
+- test and debug in one place
+
+---
+
+## The basic template
+
+```{r}
+name <- function(arg1, arg2) {
+  # compute something
+  result <- ...
+  return(result)  # optional (R returns the last expression)
+}
+```
+
+Key pieces:
+
+- **Function name**: how you call it later
+- **Arguments**: inputs (what the user supplies)
+- **Body**: the steps
+- **Return value**: output
+
+---
+
+## A first example: Celsius → Fahrenheit
+
+```{r}
+c_to_f <- function(celsius) {
+  9/5 * celsius + 32
+}
+
+c_to_f(0)
+c_to_f(c(0, 10, 20))
+```
+
+Notes:
+
+- R functions are typically **vectorized** when you use vectorized operations.
+- No explicit `return()` needed here because the last line is the result.
+
+---
+
+## Arguments and defaults
+
+You can give arguments default values.
+
+```{r}
+clip <- function(x, lo = 0, hi = 1) {
+  pmin(pmax(x, lo), hi)
+}
+
+clip(c(-2, -0.1, 0.3, 1.2))
+clip(c(-2, -0.1, 0.3, 1.2), lo = -1, hi = 2)
+```
+
+Defaults make functions easier to use while still flexible.
+
+---
+
+## Named arguments vs position
+
+```{r}
+clip(x = c(-1, 0.2, 5), lo = 0, hi = 1)
+clip(c(-1, 0.2, 5), 0, 1)
+```
+
+Recommendation for readability:
+
+- Use **names** once a function has 2+ optional arguments.
+
+---
+
+## Returning multiple values
+
+Return a **list** if you want more than one thing.
+
+```{r}
+summarize_vec <- function(x) {
+  list(
+    n = length(x),
+    mean = mean(x),
+    sd = sd(x),
+    min = min(x),
+    max = max(x)
+  )
+}
+
+out <- summarize_vec(c(1, 2, 3, 10))
+out
+out$mean
+```
+
+---
+
+## Scope: variables inside vs outside
+
+Variables created inside a function typically stay **inside**.
+
+```{r}
+f <- function(x) {
+  y <- x^2
+  y
+}
+
+f(3)
+# y  # would error here
+```
+
+This is a feature: functions help avoid accidental name collisions.
+
+---
+
+## Input checks (defensive programming)
+
+A function should fail **early** with a useful message.
+
+```{r}
+safe_log <- function(x) {
+  if (!is.numeric(x)) stop("x must be numeric")
+  if (any(x <= 0)) stop("x must be positive")
+  log(x)
+}
+
+safe_log(c(1, 2, 10))
+
+safe_log(c(1, -2, 3))
+```
+
+---
+
+## `stop()`, `warning()`, and `message()`
+
+- `stop("...")`: error; function exits immediately
+- `warning("...")`: continues, but alerts the user
+- `message("...")`: informational (often for progress)
+
+---
+
+## A slightly bigger example: standardize a numeric vector
+
+Goal: convert to z-scores: \(z_i = (x_i - \bar{x})/s\)
+
+```{r}
+zscore <- function(x, na.rm = TRUE) {
+  if (!is.numeric(x)) stop("x must be numeric")
+
+  mu <- mean(x, na.rm = na.rm)
+  s  <- sd(x, na.rm = na.rm)
+
+  if (s == 0) stop("sd is 0; cannot standardize")
+
+  (x - mu) / s
+}
+
+zscore(c(10, 12, 14))
+zscore(c(10, NA, 14))
+```
+
+---
+
+## Writing loop-based functions (when needed)
+
+Sometimes you need explicit loops (e.g., custom algorithms).
+
+```{r}
+cumprod_loop <- function(x) {
+  if (!is.numeric(x)) stop("x must be numeric")
+
+  out <- numeric(length(x))
+  prod_so_far <- 1
+
+  for (i in seq_along(x)) {
+    prod_so_far <- prod_so_far * x[i]
+    out[i] <- prod_so_far
+  }
+
+  out
+}
+
+cumprod_loop(c(2, 3, 4))
+```
+
+---
+
+## A common undergrad pitfall: growing objects in a loop
+
+This is slow:
+
+```{r}
+# DON'T
+out <- c()
+for (i in seq_along(x)) {
+  out <- c(out, f(x[i]))
+}
+```
+
+Do this instead (pre-allocate):
+
+```{r}
+out <- numeric(length(x))
+for (i in seq_along(x)) {
+  out[i] <- f(x[i])
+}
+```
+
+---
+
+## Designing good functions
+
+A good function is:
+
+- **small**: does one job
+- **predictable**: same input → same output
+- **clear**: argument names reveal intent
+- **robust**: handles edge cases and gives helpful errors
+
+---
+
+
