@@ -45,6 +45,11 @@ All slides are provided as HTML and are best viewed in a modern web browser.
   - [Source](2-ControlFlow/apply.Rmd)
   - [Code](2-ControlFlow/code_apply.R) 
 
+- **Writing Functions**
+  - [Slides](2-ControlFlow/functions.html)
+  - [Source](2-ControlFlow/functions.Rmd)
+  - [Code](2-ControlFlow/code_functions.R) 
+
 ### Notes
 
 - Slides may be updated periodically.
