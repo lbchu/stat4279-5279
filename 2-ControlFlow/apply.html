@@ -601,8 +601,8 @@ counter.</p>
 <div id="optimized-functions-for-special-tasks" class="slide section level1">
 <h1>Optimized functions for special tasks</h1>
 <p><strong>Don’t overuse</strong> the apply paradigm! There’s lots of
-special functions that <strong>optimized</strong> are will be both
-simpler and faster than using <code>apply()</code>. E.g.,</p>
+special functions that <strong>optimized</strong> will be both simpler
+and faster than using <code>apply()</code>. E.g.,</p>
 <ul>
 <li><code>rowSums()</code>, <code>colSums()</code>: for computing row,
 column sums of a matrix</li>
@@ -700,9 +700,9 @@ functions in the next set of slides.</p>
 value whenever possible. E.g., most common is the conversion from a list
 to a vector</p>
 <ul>
-<li><p>If results are length 1 –&gt; returns a vector</p></li>
-<li><p>If results are same length &gt; 1 –&gt; returns a matrix</p></li>
-<li><p>Otherwise –&gt; returns a list</p></li>
+<li><p>If results are dimension one: returns a vector</p></li>
+<li><p>If results are same dimension &gt; one: returns a matrix</p></li>
+<li><p>Otherwise: returns a list</p></li>
 </ul>
 <p>Observe the difference in structure.</p>
 <div class="sourceCode" id="cb26"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" tabindex="-1"></a>my_list <span class="ot">&lt;-</span> <span class="fu">list</span>(<span class="at">a =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">5</span>, <span class="at">b =</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">10</span>, <span class="at">c =</span> <span class="fu">rnorm</span>(<span class="dv">20</span>))</span>
@@ -735,7 +735,7 @@ bugs if structure changes.</p>
 ## $c
 ##     Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
 ## -1.54875 -0.25263  0.08843  0.06571  0.39678  1.51647</code></pre>
-<div class="sourceCode" id="cb32"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" tabindex="-1"></a><span class="fu">sapply</span>(my_list, <span class="at">FUN=</span>summary) <span class="co"># Can&#39;t simplify, so still a list</span></span></code></pre></div>
+<div class="sourceCode" id="cb32"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" tabindex="-1"></a><span class="fu">sapply</span>(my_list, <span class="at">FUN=</span>summary) <span class="do">## returns a matrix</span></span></code></pre></div>
 <pre><code>##         a     b           c
 ## Min.    1  1.00 -1.54875280
 ## 1st Qu. 2  3.25 -0.25263009
@@ -888,8 +888,12 @@ a data frame <code>x</code> according to levels of
 <li>You need multiple outputs</li>
 <li>You are debugging</li>
 </ul>
-<p>Use <code>apply()</code> family when: - The operation is clean and
-repeated - The structure is regular - The loop body is simple</p>
+<p>Use <code>apply()</code> family when:</p>
+<ul>
+<li>The operation is clean and repeated</li>
+<li>The structure is regular</li>
+<li>The loop body is simple</li>
+</ul>
 </div>
 
   <!-- dynamically load mathjax for compatibility with self-contained -->

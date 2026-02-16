@@ -1,11 +1,16 @@
 # Matrix
 X <- matrix(1:12, nrow = 3)
 
-# List (same data split by column)
-L <- list(col1 = X[,1], col2 = X[,2], col3 = X[,3], col4 = X[,4])
-
 apply(X, 1, mean)   # row means
 apply(X, 2, mean)   # column means
+
+col_means = numeric(ncol(X))
+for(i in 1:ncol(X)){
+  col_means[i] = mean(X[,i])
+}
+
+# List (same data split by column)
+L <- list(col1 = X[,1], col2 = X[,2], col3 = X[,3], col4 = X[,4])
 
 lapply(L, mean)
 

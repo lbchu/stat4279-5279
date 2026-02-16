@@ -53,7 +53,7 @@ apply(state.x77, MARGIN=2, FUN=which.max) # Index of the max in each column
 Optimized functions for special tasks
 ===
 
-**Don't overuse** the apply paradigm! There's lots of special functions that **optimized** are will be both simpler and faster than using `apply()`. E.g.,
+**Don't overuse** the apply paradigm! There's lots of special functions that **optimized** will be both simpler and faster than using `apply()`. E.g.,
 
 - `rowSums()`, `colSums()`: for computing row, column sums of a matrix
 - `rowMeans()`, `colMeans()`: for computing row, column means of a matrix
@@ -117,11 +117,11 @@ Note: the output is always a list.
 
 The `sapply()` function works just like `lapply()`, but tries to **simplify** the return value whenever possible. E.g., most common is the conversion from a list to a vector
 
-- If results are length 1 --> returns a vector
+- If results are dimension one:  returns a vector
 
-- If results are same length > 1 --> returns a matrix
+- If results are same dimension > one: returns a matrix
  
-- Otherwise --> returns a list
+- Otherwise:  returns a list
 
 Observe the difference in structure.
 
@@ -141,7 +141,7 @@ For example:
 
 ```{r}
 lapply(my_list, FUN=summary) 
-sapply(my_list, FUN=summary) # Can't simplify, so still a list
+sapply(my_list, FUN=summary) ## returns a matrix
 ```
 The output may be a matrix — or not — depending on what `summary()` returns.
 
@@ -253,6 +253,7 @@ Use `for()` when:
   - You are debugging
 
 Use `apply()` family when:
+
   - The operation is clean and repeated
   - The structure is regular
   - The loop body is simple
