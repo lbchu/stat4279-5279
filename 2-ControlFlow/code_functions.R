@@ -16,7 +16,7 @@ standardize <- function(x) {
 }
 
 # Note: return statement is optional if are only returning a single value.
-# Function names should be meaninful. Naming your function fun1 or fun2 will make
+# Function names should be meaningful. Naming your function fun1 or fun2 will make
 # reading your code very difficult. 
 
 ## More robust version that can handle NAs: 
