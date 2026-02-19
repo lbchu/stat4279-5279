@@ -236,6 +236,4 @@ A good function is:
 - **clear**: argument names reveal intent
 - **robust**: handles edge cases and gives helpful errors
 
----
-
 
