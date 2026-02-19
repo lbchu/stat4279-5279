@@ -9,11 +9,18 @@ y <- c(100, 1000)
 z <- c(-1, 1, 3)
 w <- c(1, 3, NA, 5)
 
+(x - mean(x))/sd(x)
+(y - mean(y))/sd(y)
+(z - mean(z))/sd(z)
+(w - mean(w))/sd(w)
 
 ## Let's make this fast/easy with a custom function: 
 standardize <- function(x) {
   return((x - mean(x)) / sd(x))
 }
+
+standardize(x)
+standardize(w)
 
 # Note: return statement is optional if are only returning a single value.
 # Function names should be meaningful. Naming your function fun1 or fun2 will make
