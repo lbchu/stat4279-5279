@@ -567,8 +567,10 @@ logic to new data</li>
 <span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a>  <span class="dv">9</span><span class="sc">/</span><span class="dv">5</span> <span class="sc">*</span> celsius <span class="sc">+</span> <span class="dv">32</span></span>
 <span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a>}</span>
 <span id="cb2-4"><a href="#cb2-4" tabindex="-1"></a></span>
-<span id="cb2-5"><a href="#cb2-5" tabindex="-1"></a><span class="fu">c_to_f</span>(<span class="dv">0</span>)</span>
-<span id="cb2-6"><a href="#cb2-6" tabindex="-1"></a><span class="fu">c_to_f</span>(<span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">10</span>, <span class="dv">20</span>))</span></code></pre></div>
+<span id="cb2-5"><a href="#cb2-5" tabindex="-1"></a><span class="fu">c_to_f</span>(<span class="dv">0</span>)</span></code></pre></div>
+<pre><code>## [1] 32</code></pre>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="fu">c_to_f</span>(<span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">10</span>, <span class="dv">20</span>))</span></code></pre></div>
+<pre><code>## [1] 32 50 68</code></pre>
 <p>Notes:</p>
 <ul>
 <li>R functions are typically <strong>vectorized</strong> when you use
@@ -580,18 +582,22 @@ is the result.</li>
 <div id="arguments-and-defaults" class="slide section level2">
 <h1>Arguments and defaults</h1>
 <p>You can give arguments default values.</p>
-<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a>clip <span class="ot">&lt;-</span> <span class="cf">function</span>(x, <span class="at">lo =</span> <span class="dv">0</span>, <span class="at">hi =</span> <span class="dv">1</span>) {</span>
-<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a>  <span class="fu">pmin</span>(<span class="fu">pmax</span>(x, lo), hi)</span>
-<span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a>}</span>
-<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a></span>
-<span id="cb3-5"><a href="#cb3-5" tabindex="-1"></a><span class="fu">clip</span>(<span class="fu">c</span>(<span class="sc">-</span><span class="dv">2</span>, <span class="sc">-</span><span class="fl">0.1</span>, <span class="fl">0.3</span>, <span class="fl">1.2</span>))</span>
-<span id="cb3-6"><a href="#cb3-6" tabindex="-1"></a><span class="fu">clip</span>(<span class="fu">c</span>(<span class="sc">-</span><span class="dv">2</span>, <span class="sc">-</span><span class="fl">0.1</span>, <span class="fl">0.3</span>, <span class="fl">1.2</span>), <span class="at">lo =</span> <span class="sc">-</span><span class="dv">1</span>, <span class="at">hi =</span> <span class="dv">2</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a>clip <span class="ot">&lt;-</span> <span class="cf">function</span>(x, <span class="at">lo =</span> <span class="dv">0</span>, <span class="at">hi =</span> <span class="dv">1</span>) {</span>
+<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a>  <span class="fu">pmin</span>(<span class="fu">pmax</span>(x, lo), hi)</span>
+<span id="cb6-3"><a href="#cb6-3" tabindex="-1"></a>}</span>
+<span id="cb6-4"><a href="#cb6-4" tabindex="-1"></a></span>
+<span id="cb6-5"><a href="#cb6-5" tabindex="-1"></a><span class="fu">clip</span>(<span class="fu">c</span>(<span class="sc">-</span><span class="dv">2</span>, <span class="sc">-</span><span class="fl">0.1</span>, <span class="fl">0.3</span>, <span class="fl">1.2</span>))</span></code></pre></div>
+<pre><code>## [1] 0.0 0.0 0.3 1.0</code></pre>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a><span class="fu">clip</span>(<span class="fu">c</span>(<span class="sc">-</span><span class="dv">2</span>, <span class="sc">-</span><span class="fl">0.1</span>, <span class="fl">0.3</span>, <span class="fl">1.2</span>), <span class="at">lo =</span> <span class="sc">-</span><span class="dv">1</span>, <span class="at">hi =</span> <span class="dv">2</span>)</span></code></pre></div>
+<pre><code>## [1] -1.0 -0.1  0.3  1.2</code></pre>
 <p>Defaults make functions easier to use while still flexible.</p>
 </div>
 <div id="named-arguments-vs-position" class="slide section level2">
 <h1>Named arguments vs position</h1>
-<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="fu">clip</span>(<span class="at">x =</span> <span class="fu">c</span>(<span class="sc">-</span><span class="dv">1</span>, <span class="fl">0.2</span>, <span class="dv">5</span>), <span class="at">lo =</span> <span class="dv">0</span>, <span class="at">hi =</span> <span class="dv">1</span>)</span>
-<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a><span class="fu">clip</span>(<span class="fu">c</span>(<span class="sc">-</span><span class="dv">1</span>, <span class="fl">0.2</span>, <span class="dv">5</span>), <span class="dv">0</span>, <span class="dv">1</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" tabindex="-1"></a><span class="fu">clip</span>(<span class="at">x =</span> <span class="fu">c</span>(<span class="sc">-</span><span class="dv">1</span>, <span class="fl">0.2</span>, <span class="dv">5</span>), <span class="at">lo =</span> <span class="dv">0</span>, <span class="at">hi =</span> <span class="dv">1</span>)</span></code></pre></div>
+<pre><code>## [1] 0.0 0.2 1.0</code></pre>
+<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" tabindex="-1"></a><span class="fu">clip</span>(<span class="fu">c</span>(<span class="sc">-</span><span class="dv">1</span>, <span class="fl">0.2</span>, <span class="dv">5</span>), <span class="dv">0</span>, <span class="dv">1</span>)</span></code></pre></div>
+<pre><code>## [1] 0.0 0.2 1.0</code></pre>
 <p>Recommendation for readability:</p>
 <ul>
 <li>Use <strong>names</strong> once a function has 2+ optional
@@ -601,31 +607,47 @@ arguments.</li>
 <div id="returning-multiple-values" class="slide section level2">
 <h1>Returning multiple values</h1>
 <p>Return a <strong>list</strong> if you want more than one thing.</p>
-<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a>summarize_vec <span class="ot">&lt;-</span> <span class="cf">function</span>(x) {</span>
-<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a>  <span class="fu">list</span>(</span>
-<span id="cb5-3"><a href="#cb5-3" tabindex="-1"></a>    <span class="at">n =</span> <span class="fu">length</span>(x),</span>
-<span id="cb5-4"><a href="#cb5-4" tabindex="-1"></a>    <span class="at">mean =</span> <span class="fu">mean</span>(x),</span>
-<span id="cb5-5"><a href="#cb5-5" tabindex="-1"></a>    <span class="at">sd =</span> <span class="fu">sd</span>(x),</span>
-<span id="cb5-6"><a href="#cb5-6" tabindex="-1"></a>    <span class="at">min =</span> <span class="fu">min</span>(x),</span>
-<span id="cb5-7"><a href="#cb5-7" tabindex="-1"></a>    <span class="at">max =</span> <span class="fu">max</span>(x)</span>
-<span id="cb5-8"><a href="#cb5-8" tabindex="-1"></a>  )</span>
-<span id="cb5-9"><a href="#cb5-9" tabindex="-1"></a>}</span>
-<span id="cb5-10"><a href="#cb5-10" tabindex="-1"></a></span>
-<span id="cb5-11"><a href="#cb5-11" tabindex="-1"></a>out <span class="ot">&lt;-</span> <span class="fu">summarize_vec</span>(<span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">3</span>, <span class="dv">10</span>))</span>
-<span id="cb5-12"><a href="#cb5-12" tabindex="-1"></a>out</span>
-<span id="cb5-13"><a href="#cb5-13" tabindex="-1"></a>out<span class="sc">$</span>mean</span></code></pre></div>
+<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" tabindex="-1"></a>summarize_vec <span class="ot">&lt;-</span> <span class="cf">function</span>(x) {</span>
+<span id="cb14-2"><a href="#cb14-2" tabindex="-1"></a>  <span class="fu">list</span>(</span>
+<span id="cb14-3"><a href="#cb14-3" tabindex="-1"></a>    <span class="at">n =</span> <span class="fu">length</span>(x),</span>
+<span id="cb14-4"><a href="#cb14-4" tabindex="-1"></a>    <span class="at">mean =</span> <span class="fu">mean</span>(x),</span>
+<span id="cb14-5"><a href="#cb14-5" tabindex="-1"></a>    <span class="at">sd =</span> <span class="fu">sd</span>(x),</span>
+<span id="cb14-6"><a href="#cb14-6" tabindex="-1"></a>    <span class="at">min =</span> <span class="fu">min</span>(x),</span>
+<span id="cb14-7"><a href="#cb14-7" tabindex="-1"></a>    <span class="at">max =</span> <span class="fu">max</span>(x)</span>
+<span id="cb14-8"><a href="#cb14-8" tabindex="-1"></a>  )</span>
+<span id="cb14-9"><a href="#cb14-9" tabindex="-1"></a>}</span>
+<span id="cb14-10"><a href="#cb14-10" tabindex="-1"></a></span>
+<span id="cb14-11"><a href="#cb14-11" tabindex="-1"></a>out <span class="ot">&lt;-</span> <span class="fu">summarize_vec</span>(<span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">3</span>, <span class="dv">10</span>))</span>
+<span id="cb14-12"><a href="#cb14-12" tabindex="-1"></a>out</span></code></pre></div>
+<pre><code>## $n
+## [1] 4
+## 
+## $mean
+## [1] 4
+## 
+## $sd
+## [1] 4.082483
+## 
+## $min
+## [1] 1
+## 
+## $max
+## [1] 10</code></pre>
+<div class="sourceCode" id="cb16"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" tabindex="-1"></a>out<span class="sc">$</span>mean</span></code></pre></div>
+<pre><code>## [1] 4</code></pre>
 </div>
 <div id="scope-variables-inside-vs-outside" class="slide section level2">
 <h1>Scope: variables inside vs outside</h1>
 <p>Variables created inside a function typically stay
 <strong>inside</strong>.</p>
-<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a>f <span class="ot">&lt;-</span> <span class="cf">function</span>(x) {</span>
-<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a>  y <span class="ot">&lt;-</span> x<span class="sc">^</span><span class="dv">2</span></span>
-<span id="cb6-3"><a href="#cb6-3" tabindex="-1"></a>  y</span>
-<span id="cb6-4"><a href="#cb6-4" tabindex="-1"></a>}</span>
-<span id="cb6-5"><a href="#cb6-5" tabindex="-1"></a></span>
-<span id="cb6-6"><a href="#cb6-6" tabindex="-1"></a><span class="fu">f</span>(<span class="dv">3</span>)</span>
-<span id="cb6-7"><a href="#cb6-7" tabindex="-1"></a><span class="co"># y  # would error here</span></span></code></pre></div>
+<div class="sourceCode" id="cb18"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" tabindex="-1"></a>f <span class="ot">&lt;-</span> <span class="cf">function</span>(x) {</span>
+<span id="cb18-2"><a href="#cb18-2" tabindex="-1"></a>  y <span class="ot">&lt;-</span> x<span class="sc">^</span><span class="dv">2</span></span>
+<span id="cb18-3"><a href="#cb18-3" tabindex="-1"></a>  y</span>
+<span id="cb18-4"><a href="#cb18-4" tabindex="-1"></a>}</span>
+<span id="cb18-5"><a href="#cb18-5" tabindex="-1"></a></span>
+<span id="cb18-6"><a href="#cb18-6" tabindex="-1"></a><span class="fu">f</span>(<span class="dv">3</span>)</span></code></pre></div>
+<pre><code>## [1] 9</code></pre>
+<div class="sourceCode" id="cb20"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" tabindex="-1"></a><span class="co"># y  # would error here</span></span></code></pre></div>
 <p>This is a feature: functions help avoid accidental name
 collisions.</p>
 </div>
@@ -633,14 +655,17 @@ collisions.</p>
 <h1>Input checks (defensive programming)</h1>
 <p>A function should fail <strong>early</strong> with a useful
 message.</p>
-<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a>safe_log <span class="ot">&lt;-</span> <span class="cf">function</span>(x) {</span>
-<span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a>  <span class="cf">if</span> (<span class="sc">!</span><span class="fu">is.numeric</span>(x)) <span class="fu">stop</span>(<span class="st">&quot;x must be numeric&quot;</span>)</span>
-<span id="cb7-3"><a href="#cb7-3" tabindex="-1"></a>  <span class="cf">if</span> (<span class="fu">any</span>(x <span class="sc">&lt;=</span> <span class="dv">0</span>)) <span class="fu">stop</span>(<span class="st">&quot;x must be positive&quot;</span>)</span>
-<span id="cb7-4"><a href="#cb7-4" tabindex="-1"></a>  <span class="fu">log</span>(x)</span>
-<span id="cb7-5"><a href="#cb7-5" tabindex="-1"></a>}</span>
-<span id="cb7-6"><a href="#cb7-6" tabindex="-1"></a></span>
-<span id="cb7-7"><a href="#cb7-7" tabindex="-1"></a><span class="fu">safe_log</span>(<span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">10</span>))</span>
-<span id="cb7-8"><a href="#cb7-8" tabindex="-1"></a><span class="co"># safe_log(c(1, -2, 3))</span></span></code></pre></div>
+<div class="sourceCode" id="cb21"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" tabindex="-1"></a>safe_log <span class="ot">&lt;-</span> <span class="cf">function</span>(x) {</span>
+<span id="cb21-2"><a href="#cb21-2" tabindex="-1"></a>  <span class="cf">if</span> (<span class="sc">!</span><span class="fu">is.numeric</span>(x)) <span class="fu">stop</span>(<span class="st">&quot;x must be numeric&quot;</span>)</span>
+<span id="cb21-3"><a href="#cb21-3" tabindex="-1"></a>  <span class="cf">if</span> (<span class="fu">any</span>(x <span class="sc">&lt;=</span> <span class="dv">0</span>)) <span class="fu">stop</span>(<span class="st">&quot;x must be positive&quot;</span>)</span>
+<span id="cb21-4"><a href="#cb21-4" tabindex="-1"></a>  <span class="fu">log</span>(x)</span>
+<span id="cb21-5"><a href="#cb21-5" tabindex="-1"></a>}</span>
+<span id="cb21-6"><a href="#cb21-6" tabindex="-1"></a></span>
+<span id="cb21-7"><a href="#cb21-7" tabindex="-1"></a><span class="fu">safe_log</span>(<span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">10</span>))</span></code></pre></div>
+<pre><code>## [1] 0.0000000 0.6931472 2.3025851</code></pre>
+<div class="sourceCode" id="cb23"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" tabindex="-1"></a><span class="fu">safe_log</span>(<span class="fu">c</span>(<span class="dv">1</span>, <span class="sc">-</span><span class="dv">2</span>, <span class="dv">3</span>)) <span class="do">## this line works interactively. But if you tried to knit, any error stops the entire document build unless you explicitly allow errors.</span></span></code></pre></div>
+<pre><code>## Error in `safe_log()`:
+## ! x must be positive</code></pre>
 </div>
 <div id="stop-warning-and-message" class="slide section level2">
 <h1><code>stop()</code>, <code>warning()</code>, and
@@ -655,53 +680,57 @@ message.</p>
 <h1>A slightly bigger example: standardize a numeric vector</h1>
 <p>Goal: convert to z-scores: <span class="math inline">\(z_i = (x_i -
 \bar{x})/s\)</span></p>
-<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a>zscore <span class="ot">&lt;-</span> <span class="cf">function</span>(x, <span class="at">na.rm =</span> <span class="cn">TRUE</span>) {</span>
-<span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a>  <span class="cf">if</span> (<span class="sc">!</span><span class="fu">is.numeric</span>(x)) <span class="fu">stop</span>(<span class="st">&quot;x must be numeric&quot;</span>)</span>
-<span id="cb8-3"><a href="#cb8-3" tabindex="-1"></a></span>
-<span id="cb8-4"><a href="#cb8-4" tabindex="-1"></a>  mu <span class="ot">&lt;-</span> <span class="fu">mean</span>(x, <span class="at">na.rm =</span> na.rm)</span>
-<span id="cb8-5"><a href="#cb8-5" tabindex="-1"></a>  s  <span class="ot">&lt;-</span> <span class="fu">sd</span>(x, <span class="at">na.rm =</span> na.rm)</span>
-<span id="cb8-6"><a href="#cb8-6" tabindex="-1"></a></span>
-<span id="cb8-7"><a href="#cb8-7" tabindex="-1"></a>  <span class="cf">if</span> (s <span class="sc">==</span> <span class="dv">0</span>) <span class="fu">stop</span>(<span class="st">&quot;sd is 0; cannot standardize&quot;</span>)</span>
-<span id="cb8-8"><a href="#cb8-8" tabindex="-1"></a></span>
-<span id="cb8-9"><a href="#cb8-9" tabindex="-1"></a>  (x <span class="sc">-</span> mu) <span class="sc">/</span> s</span>
-<span id="cb8-10"><a href="#cb8-10" tabindex="-1"></a>}</span>
-<span id="cb8-11"><a href="#cb8-11" tabindex="-1"></a></span>
-<span id="cb8-12"><a href="#cb8-12" tabindex="-1"></a><span class="fu">zscore</span>(<span class="fu">c</span>(<span class="dv">10</span>, <span class="dv">12</span>, <span class="dv">14</span>))</span>
-<span id="cb8-13"><a href="#cb8-13" tabindex="-1"></a><span class="fu">zscore</span>(<span class="fu">c</span>(<span class="dv">10</span>, <span class="cn">NA</span>, <span class="dv">14</span>))</span></code></pre></div>
+<div class="sourceCode" id="cb25"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" tabindex="-1"></a>zscore <span class="ot">&lt;-</span> <span class="cf">function</span>(x, <span class="at">na.rm =</span> <span class="cn">TRUE</span>) {</span>
+<span id="cb25-2"><a href="#cb25-2" tabindex="-1"></a>  <span class="cf">if</span> (<span class="sc">!</span><span class="fu">is.numeric</span>(x)) <span class="fu">stop</span>(<span class="st">&quot;x must be numeric&quot;</span>)</span>
+<span id="cb25-3"><a href="#cb25-3" tabindex="-1"></a></span>
+<span id="cb25-4"><a href="#cb25-4" tabindex="-1"></a>  mu <span class="ot">&lt;-</span> <span class="fu">mean</span>(x, <span class="at">na.rm =</span> na.rm)</span>
+<span id="cb25-5"><a href="#cb25-5" tabindex="-1"></a>  s  <span class="ot">&lt;-</span> <span class="fu">sd</span>(x, <span class="at">na.rm =</span> na.rm)</span>
+<span id="cb25-6"><a href="#cb25-6" tabindex="-1"></a></span>
+<span id="cb25-7"><a href="#cb25-7" tabindex="-1"></a>  <span class="cf">if</span> (s <span class="sc">==</span> <span class="dv">0</span>) <span class="fu">stop</span>(<span class="st">&quot;sd is 0; cannot standardize&quot;</span>)</span>
+<span id="cb25-8"><a href="#cb25-8" tabindex="-1"></a></span>
+<span id="cb25-9"><a href="#cb25-9" tabindex="-1"></a>  (x <span class="sc">-</span> mu) <span class="sc">/</span> s</span>
+<span id="cb25-10"><a href="#cb25-10" tabindex="-1"></a>}</span>
+<span id="cb25-11"><a href="#cb25-11" tabindex="-1"></a></span>
+<span id="cb25-12"><a href="#cb25-12" tabindex="-1"></a><span class="fu">zscore</span>(<span class="fu">c</span>(<span class="dv">10</span>, <span class="dv">12</span>, <span class="dv">14</span>))</span></code></pre></div>
+<pre><code>## [1] -1  0  1</code></pre>
+<div class="sourceCode" id="cb27"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" tabindex="-1"></a><span class="fu">zscore</span>(<span class="fu">c</span>(<span class="dv">10</span>, <span class="cn">NA</span>, <span class="dv">14</span>))</span></code></pre></div>
+<pre><code>## [1] -0.7071068         NA  0.7071068</code></pre>
 </div>
 <div id="writing-loop-based-functions-when-needed" class="slide section level2">
 <h1>Writing loop-based functions (when needed)</h1>
 <p>Sometimes you need explicit loops (e.g., custom algorithms).</p>
-<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a>cumprod_loop <span class="ot">&lt;-</span> <span class="cf">function</span>(x) {</span>
-<span id="cb9-2"><a href="#cb9-2" tabindex="-1"></a>  <span class="cf">if</span> (<span class="sc">!</span><span class="fu">is.numeric</span>(x)) <span class="fu">stop</span>(<span class="st">&quot;x must be numeric&quot;</span>)</span>
-<span id="cb9-3"><a href="#cb9-3" tabindex="-1"></a></span>
-<span id="cb9-4"><a href="#cb9-4" tabindex="-1"></a>  out <span class="ot">&lt;-</span> <span class="fu">numeric</span>(<span class="fu">length</span>(x))</span>
-<span id="cb9-5"><a href="#cb9-5" tabindex="-1"></a>  prod_so_far <span class="ot">&lt;-</span> <span class="dv">1</span></span>
-<span id="cb9-6"><a href="#cb9-6" tabindex="-1"></a></span>
-<span id="cb9-7"><a href="#cb9-7" tabindex="-1"></a>  <span class="cf">for</span> (i <span class="cf">in</span> <span class="fu">seq_along</span>(x)) {</span>
-<span id="cb9-8"><a href="#cb9-8" tabindex="-1"></a>    prod_so_far <span class="ot">&lt;-</span> prod_so_far <span class="sc">*</span> x[i]</span>
-<span id="cb9-9"><a href="#cb9-9" tabindex="-1"></a>    out[i] <span class="ot">&lt;-</span> prod_so_far</span>
-<span id="cb9-10"><a href="#cb9-10" tabindex="-1"></a>  }</span>
-<span id="cb9-11"><a href="#cb9-11" tabindex="-1"></a></span>
-<span id="cb9-12"><a href="#cb9-12" tabindex="-1"></a>  out</span>
-<span id="cb9-13"><a href="#cb9-13" tabindex="-1"></a>}</span>
-<span id="cb9-14"><a href="#cb9-14" tabindex="-1"></a></span>
-<span id="cb9-15"><a href="#cb9-15" tabindex="-1"></a><span class="fu">cumprod_loop</span>(<span class="fu">c</span>(<span class="dv">2</span>, <span class="dv">3</span>, <span class="dv">4</span>))</span></code></pre></div>
+<div class="sourceCode" id="cb29"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" tabindex="-1"></a>cumprod_loop <span class="ot">&lt;-</span> <span class="cf">function</span>(x) {</span>
+<span id="cb29-2"><a href="#cb29-2" tabindex="-1"></a>  <span class="cf">if</span> (<span class="sc">!</span><span class="fu">is.numeric</span>(x)) <span class="fu">stop</span>(<span class="st">&quot;x must be numeric&quot;</span>)</span>
+<span id="cb29-3"><a href="#cb29-3" tabindex="-1"></a></span>
+<span id="cb29-4"><a href="#cb29-4" tabindex="-1"></a>  out <span class="ot">&lt;-</span> <span class="fu">numeric</span>(<span class="fu">length</span>(x))</span>
+<span id="cb29-5"><a href="#cb29-5" tabindex="-1"></a>  prod_so_far <span class="ot">&lt;-</span> <span class="dv">1</span></span>
+<span id="cb29-6"><a href="#cb29-6" tabindex="-1"></a></span>
+<span id="cb29-7"><a href="#cb29-7" tabindex="-1"></a>  <span class="cf">for</span> (i <span class="cf">in</span> <span class="fu">seq_along</span>(x)) {</span>
+<span id="cb29-8"><a href="#cb29-8" tabindex="-1"></a>    prod_so_far <span class="ot">&lt;-</span> prod_so_far <span class="sc">*</span> x[i]</span>
+<span id="cb29-9"><a href="#cb29-9" tabindex="-1"></a>    out[i] <span class="ot">&lt;-</span> prod_so_far</span>
+<span id="cb29-10"><a href="#cb29-10" tabindex="-1"></a>  }</span>
+<span id="cb29-11"><a href="#cb29-11" tabindex="-1"></a></span>
+<span id="cb29-12"><a href="#cb29-12" tabindex="-1"></a>  out</span>
+<span id="cb29-13"><a href="#cb29-13" tabindex="-1"></a>}</span>
+<span id="cb29-14"><a href="#cb29-14" tabindex="-1"></a></span>
+<span id="cb29-15"><a href="#cb29-15" tabindex="-1"></a><span class="fu">cumprod_loop</span>(<span class="fu">c</span>(<span class="dv">2</span>, <span class="dv">3</span>, <span class="dv">4</span>))</span></code></pre></div>
 <pre><code>## [1]  2  6 24</code></pre>
 </div>
 <div id="a-common-undergrad-pitfall-growing-objects-in-a-loop" class="slide section level2">
 <h1>A common undergrad pitfall: growing objects in a loop</h1>
 <p>This is slow:</p>
-<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" tabindex="-1"></a><span class="co"># DON&#39;T</span></span>
-<span id="cb11-2"><a href="#cb11-2" tabindex="-1"></a>out <span class="ot">&lt;-</span> <span class="fu">c</span>()</span>
-<span id="cb11-3"><a href="#cb11-3" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="fu">seq_along</span>(x)) {</span>
-<span id="cb11-4"><a href="#cb11-4" tabindex="-1"></a>  out <span class="ot">&lt;-</span> <span class="fu">c</span>(out, <span class="fu">f</span>(x[i]))</span>
-<span id="cb11-5"><a href="#cb11-5" tabindex="-1"></a>}</span></code></pre></div>
+<div class="sourceCode" id="cb31"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" tabindex="-1"></a><span class="co"># DON&#39;T</span></span>
+<span id="cb31-2"><a href="#cb31-2" tabindex="-1"></a>x <span class="ot">=</span> <span class="fu">rnorm</span>(<span class="dv">10</span>)</span>
+<span id="cb31-3"><a href="#cb31-3" tabindex="-1"></a>out <span class="ot">&lt;-</span> <span class="fu">c</span>()</span>
+<span id="cb31-4"><a href="#cb31-4" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="fu">seq_along</span>(x)) {</span>
+<span id="cb31-5"><a href="#cb31-5" tabindex="-1"></a>  out <span class="ot">&lt;-</span> <span class="fu">c</span>(out, <span class="fu">f</span>(x[i]))</span>
+<span id="cb31-6"><a href="#cb31-6" tabindex="-1"></a>}</span></code></pre></div>
 <p>Do this instead (pre-allocate):</p>
-<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" tabindex="-1"></a>out <span class="ot">&lt;-</span> <span class="fu">numeric</span>(<span class="fu">length</span>(x))</span>
-<span id="cb12-2"><a href="#cb12-2" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="fu">seq_along</span>(x)) {</span>
-<span id="cb12-3"><a href="#cb12-3" tabindex="-1"></a>  out[i] <span class="ot">&lt;-</span> <span class="fu">f</span>(x[i])</span>
-<span id="cb12-4"><a href="#cb12-4" tabindex="-1"></a>}</span></code></pre></div>
+<div class="sourceCode" id="cb32"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb32-1"><a href="#cb32-1" tabindex="-1"></a>x <span class="ot">=</span> <span class="fu">rnorm</span>(<span class="dv">10</span>)</span>
+<span id="cb32-2"><a href="#cb32-2" tabindex="-1"></a>out <span class="ot">&lt;-</span> <span class="fu">numeric</span>(<span class="fu">length</span>(x))</span>
+<span id="cb32-3"><a href="#cb32-3" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="fu">seq_along</span>(x)) {</span>
+<span id="cb32-4"><a href="#cb32-4" tabindex="-1"></a>  out[i] <span class="ot">&lt;-</span> <span class="fu">f</span>(x[i])</span>
+<span id="cb32-5"><a href="#cb32-5" tabindex="-1"></a>}</span></code></pre></div>
 </div>
 <div id="designing-good-functions" class="slide section level2">
 <h1>Designing good functions</h1>
@@ -714,28 +743,8 @@ message.</p>
 errors</li>
 </ul>
 </div>
-<div id="in-class-mini-exercises" class="slide section level2">
-<h1>In-class mini-exercises</h1>
-<ol style="list-style-type: decimal">
-<li><p>Write <code>range_width(x)</code> that returns
-<code>max(x) - min(x)</code> (handle <code>NA</code>s).</p></li>
-<li><p>Write <code>rmse(y, yhat)</code> that returns the root mean
-squared error.</p></li>
-<li><p>Write <code>threshold(x, t = 0)</code> that returns
-<code>TRUE/FALSE</code> for <code>x &gt; t</code>.</p></li>
-</ol>
-</div>
-<div id="optional-documenting-your-functions" class="slide section level2">
-<h1>Optional: documenting your functions</h1>
-<p>Even basic comments help:</p>
-<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" tabindex="-1"></a><span class="co"># zscore(): standardize a numeric vector</span></span>
-<span id="cb13-2"><a href="#cb13-2" tabindex="-1"></a><span class="co"># Args:</span></span>
-<span id="cb13-3"><a href="#cb13-3" tabindex="-1"></a><span class="co">#   x: numeric vector</span></span>
-<span id="cb13-4"><a href="#cb13-4" tabindex="-1"></a><span class="co">#   na.rm: remove NAs?</span></span>
-<span id="cb13-5"><a href="#cb13-5" tabindex="-1"></a><span class="co"># Returns:</span></span>
-<span id="cb13-6"><a href="#cb13-6" tabindex="-1"></a><span class="co">#   numeric vector of z-scores</span></span></code></pre></div>
-<p>Later: we can introduce <strong>roxygen2</strong> for package-style
-documentation.</p>
+<div class="slide section level2">
+
 </div>
 
   <!-- dynamically load mathjax for compatibility with self-contained -->
