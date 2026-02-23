@@ -1,0 +1,289 @@
+---
+title: 'Getting Started: Simulation and Resampling Methods'
+author: "Statistical Computing for Data Analysis"
+output:
+  slidy_presentation:
+    font_adjustment: -1
+  ioslides_presentation: default
+---
+
+
+Outline
+===
+
+- Probability in R
+- Pseudo random number generation
+- Random sampling 
+
+
+Probability in Statistics
+===
+
+Intuition: How likely is an event to happen? 
+
+Formalize this: We study a random variable $X$ that represents the outcome of a random phenomenon
+
+Example: $X$ = corn yield 
+
+We want to 1. be able to understand the distribution of our random variable and 2. simulation random draws from this distribution. 
+
+Common Distributions
+===
+
+You'll use these often for simulation: 
+
+- Normal
+- Binomial
+- Chi-square
+- Exponential 
+- Gamma
+- Poisson 
+- Uniform 
+- $t$ distribution 
+
+The Prefix System: d, p, q, r
+===
+
+R uses a consistent naming convention for probability distributions. You append the prefix to the core name of the distribution (e.g., `norm`, `t`, `pois`, `binom`).
+
+ - `d`: Density function (or probability mass functionfor discrete distributions)
+ - `p`: Probability (Cumulative Distribution Function)
+ - `q`: Quantile (Inverse CDF)
+ - `r`: Random generation
+
+Each function requires the specific parameters that define that distribution's shape.
+
+Brief Stats Review: Density Functions
+===
+
+**Probability Density Function (PDF): $f(x)$**
+
+- Describes the relative likelihood of a continuous random variable taking on a specific value.
+- The height of the curve is *not* a probability. Probability is the area under the curve: $P(a \le X \le b) = \int_{a}^{b} f(x) dx$.
+- **In R:** `dnorm(x, mean = 0, sd = 1)` evaluates the density $f(x)$ at $x$.
+
+```{r, echo=TRUE, fig.height=4, fig.width=6}
+# Plotting the Standard Normal Density
+x <- seq(-4, 4, length.out = 100)
+plot(x, dnorm(x), type = "l", lwd = 2, col = "blue",
+     main = "Density Function: dnorm()", ylab = "f(x)")
+polygon(c(-2, seq(-2, 0, 0.01), 0), c(0, dnorm(seq(-2, 0, 0.01)), 0), col = "lightblue")
+```
+
+What is the pdf $f(x)$ evaluated at a specific value?
+```{r}
+dnorm(2,0,1) ## f(x=2) assuming X ~ N(0,1)
+```
+
+Brief Stats Review: Distribution Functions
+===
+
+**Cumulative Distribution Function (CDF): $F(x)$**
+
+- Returns the probability that a random variable $X$ is less than or equal to a specific value $x$
+- **Mathematical Definition:** $F(x) = P (X \le x) = \int_{-\infty}^{x} f(t) dt$.
+- **In R:** `pnorm(q, mean = 0, sd = 1)` calculates this left-tail probability for a given value $q$.
+
+```{r, echo=TRUE, fig.height=4, fig.width=6}
+# Plotting the Standard Normal CDF
+plot(x, pnorm(x), type = "l", lwd = 2, col = "darkgreen",
+     main = "Distribution Function: pnorm()", ylab = "F(x)")
+segments(x0 = 0, y0 = 0, x1 = 0, y1 = pnorm(0), lty = 2, col = "red")
+segments(x0 = -4, y0 = pnorm(0), x1 = 0, y1 = pnorm(0), lty = 2, col = "red")
+```
+
+What is the CDF $F(x)$ evaluated at a specific value?
+```{r}
+pnorm(2,0,1) ## P(X <= 2) = F(2) assuming X ~ N(0,1)
+```
+
+
+Brief Stats Review: Quantiles
+===
+
+**Quantile Function: $F^{-1}(p)$**
+
+- - **Intuition:** Instead of asking "What is the probability of observing a value less than $x$?", we ask, "What is the value $x$ that traps a specific probability $p$ below it?"
+- Think of standardized test percentiles: If you are in the 90th percentile, $p = 0.90$. The quantile function tells you the exact test score $x$ that corresponds to that rank.
+- Formally it is the inverse of the CDF: $F^{-1}(p)$. This says given a probability $p$ (where $0 \le p \le 1$), it returns the value $x$ such that $P(X \le x) = p$.
+- **In R:** `qnorm(p, mean = 0, sd = 1)` finds the value corresponding to the $p$-th probability.
+
+```{r}
+# Finding the 95th quantile
+p <- 0.95
+q_val <- qnorm(p)
+q_val
+
+# Verifying the inverse relationship: the area to the left is 0.95
+pnorm(q_val)
+```
+
+Generating Random Data
+===
+
+Random Number GenerationTo simulate data from a theoretical distribution, we use the `r` prefix.
+
+**In R:** `rnorm(n, mean = 0, sd = 1)` generates a vector of length $n$ containing pseudo-random draws from the specified *normal distribution*.
+
+```{r}
+# Simulate 5 standard normal random variables
+rnorm(5)
+```
+
+
+Reproducibility: set.seed()
+===
+
+Why use set.seed()?
+
+- Computers use deterministic algorithms (pseudo-randomness).
+- Setting a seed initializes the starting point of the algorithm. This guarantees that your code will produce the exact same sequence of "random" numbers every time it is run.
+- Without a seed: results are still fine statistically, but you can’t match someone else’s output.
+
+```{r}
+
+set.seed(4279) 
+rnorm(3)
+
+set.seed(4279) # Resetting the seed to the exact same starting point
+rnorm(3)       # Yields the exact same draws
+```
+
+
+Example: Student's t-Distribution
+=== 
+
+**Continuous, symmetric, but with heavier tails than the normal distribution.**
+
+  - Core name: `t`
+  - Parameter: `df` (degrees of freedom)
+  
+```{r}
+
+# Generate 1000 random draws from a t-distribution with 5 df
+t_draws <- rt(n = 1000, df = 5)
+
+# Compare the density of our sample to the theoretical density
+hist(t_draws, probability = TRUE, breaks = 30, col = "lightgray", main = "t-Distribution (df=5)")
+curve(dt(x, df = 5), add = TRUE, col = "darkblue", lwd = 2)
+```
+
+Example: Poisson Distribution
+=== 
+
+**Discrete distribution modeling the number of events occurring in a fixed interval.**
+
+  - Core name: `pois`
+  - Parameter: `lambda` ($\lambda$, the expected rate of occurrence)
+  - Note: Because it is discrete, `dpois()` calculates the exact Probability Mass Function (PMF), $P(X = x)$.
+
+```{r}
+# Probability of observing exactly 3 events when the average rate is 2
+dpois(x = 3, lambda = 2)
+
+# Generate 10 random counts with rate lambda = 2
+rpois(n = 10, lambda = 2)
+
+```
+
+Example: Binomial Distribution
+=== 
+
+**Discrete distribution modeling the number of successes in $n$ independent trials..**
+
+  - Core name: `binom`
+  - Parameters: `size` (number of trials, $n$) and `prob` (probability of success on each trial, $p$
+
+```{r}
+# Probability of getting exactly 7 heads in 10 coin flips (fair coin)
+dbinom(x = 7, size = 10, prob = 0.5)
+
+# Simulate 5 different experiments of 10 coin flips each
+rbinom(n = 5, size = 10, prob = 0.5)
+```
+
+From Theoretical to Empirical Distributions
+===
+
+**The Empirical Cumulative Distribution Function (ECDF): $\hat{F}_n(x)$**
+
+- Previously, we used functions like `pnorm()` to evaluate the *theoretical* CDF, $F(x)$, of a known probability distribution.
+- In practice, we rarely know the true distribution. Instead, we have a sample of observed data: $x_1, x_2, \dots, x_n$.
+- We estimate the theoretical CDF using the **Empirical CDF**, which is a step function that jumps by $1/n$ at each observed data point.
+- **Mathematical Definition:** $$\hat{F}_n(x) = \frac{1}{n} \sum_{i=1}^n I(x_i \le x)$$ where $I(\cdot)$ is the indicator function.
+
+
+Computing and Plotting the ECDF in R
+===
+
+The `ecdf()` function takes a numeric vector of data and returns a *function* that evaluates the step distribution. We can visualize how well our empirical data matches the theoretical distribution we drew it from.
+
+```{r, echo=TRUE, fig.height=4, fig.width=6}
+set.seed(4279)
+# 1. Generate a small sample from a standard normal distribution
+obs_data <- rnorm(30)
+
+# 2. Compute the ECDF
+my_ecdf <- ecdf(obs_data)
+
+# 3. Plot the empirical step function
+plot(my_ecdf, main = "Empirical vs. Theoretical CDF", xlab = "x", ylab = "F(x)", lwd = 2)
+
+# 4. Overlay the theoretical true CDF (pnorm) for comparison
+curve(pnorm(x), add = TRUE, col = "red", lwd = 2, lty = 2)
+```
+
+Random Sampling from Finite Sets: sample()
+===
+
+**Moving beyond theoretical probability distributions**
+
+- The r-prefix functions (`rnorm`, `rpois`) generate data by sampling from theoretical probability models.
+
+- When we want to sample directly from an existing, finite vector of data (like our obs_data vector, or a specific set of categories), we use base R's sample() function.
+
+**Syntax:** `sample(x, size, replace = FALSE, prob = NULL)`
+
+ - `x`: A vector of elements to choose from.
+ - `size`: The number of items to choose.
+ - `replace`: Should sampling be with or without replacement?
+
+Sampling Without Replacement
+===
+
+**Default Behavior ** (`replace = FALSE`)
+
+  - Once an element is drawn from the vector, it is removed from the candidate pool and cannot be selected again.
+  - Statistical Application: This simulates Simple Random Sampling (SRS) without replacement from a finite population, or drawing cards from a deck.
+  - The size argument cannot exceed the length of the vector `x`.
+  
+```{r}
+
+set.seed(4279)
+# Draw 5 unique students from a roster of 100
+sample(x = 1:100, size = 5, replace = FALSE)
+
+# Permutation: If size equals the length of x, it shuffles the vector
+sample(x = c("A", "B", "C"), size = 3, replace = FALSE)
+```
+
+Sampling With Replacement
+===
+
+**Resampling** (`replace = TRUE`)
+
+  - Once an element is drawn, it is "returned" to the pool and can be selected multiple times.
+  - **Statistical Application:** This is the fundamental mechanism behind resampling methods, such as the **Bootstrap**. When we sample with replacement from our own observed data, we are treating the Empirical CDF, $\hat{F}_n(x)$, as the true data-generating distribution.
+  - The `size` argument can be arbitrarily large.
+  
+```{r}
+set.seed(4279)
+# Simulating 10 rolls of a fair 6-sided die
+sample(x = 1:6, size = 10, replace = TRUE)
+
+# Bootstrap sample: Sampling from our previously generated obs_data
+bootstrap_sample <- sample(x = obs_data, size = length(obs_data), replace = TRUE)
+head(bootstrap_sample)
+```
+  
+  

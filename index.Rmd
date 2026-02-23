@@ -50,6 +50,13 @@ All slides are provided as HTML and are best viewed in a modern web browser.
   - [Source](2-ControlFlow/functions.Rmd)
   - [Code](2-ControlFlow/code_functions.R) 
 
+### Module 03: Sampling and Simulations 
+
+- **Sampling**
+  - [Slides](3-Sampling and Simulations/Sampling.html)
+  - [Source](3-Sampling and Simulations/Sampling.Rmd)
+  - [Code](3-Sampling and Simulations/code_sampling.R) 
+
 ### Notes
 
 - Slides may be updated periodically.

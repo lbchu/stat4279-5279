@@ -1,0 +1,169 @@
+---
+title: 'Empirical CDF and Inverse Transform Sampling (Inverse CDF Method)'
+author: "Statistical Computing for Data Analysis"
+output:
+  slidy_presentation:
+    font_adjustment: -1
+  ioslides_presentation: default
+---
+
+The Simulation Problem
+===
+
+**Moving beyond built-in `r` functions**
+
+- R has convenient functions like `rnorm()` and `rpois()`. But what if you are utilizing a distribution that does not have a built-in `R` distribution? Or more realistically, you have a complex piecewise distribution, where no `R` function exists?
+- If you can calculate the distribution's quantile function (the inverse-CDF, $F^{-1}$), you can generate random data for it using the **Inverse Transfom Method** (also known as the Inverse CDF Method).
+
+
+Inverse Transform Method (High-level)
+===
+
+**Generating data via quantiles**
+
+Idea is that instead of trying to draw $X$ directly, we generate a random *probability* and work backward to find the corresponding $X$.
+
+**The Algorithm:**
+1. Draw a random probability $U$ from a Uniform(0, 1) distribution. (Every probability from 0% to 100% has an equal chance of being selected).
+2. Plug $U$ into the inverse-CDF (quantile function). 
+3. The result is a random draw $X$: $$X = F^{-1}(U)$$
+
+Let's walk through each of these systematically. 
+
+1. The Uniform(0,1) Distribution
+===
+
+**The Foundation of Randomness**
+
+Before we map probabilities to data, we must understand the Uniform(0,1) distribution: $U \sim \text{Uniform}(0,1)$.
+- It means every real number between 0 and 1 has an exactly equal chance of being drawn.
+- The density function $f(x)$ is a flat horizontal line at $y=1$.
+
+```{r, echo=TRUE, fig.height=4, fig.width=8}
+set.seed(4279)
+par(mfrow = c(1, 2))
+
+# 1. Theoretical Density (Flat line)
+curve(dunif(x), from = -0.2, to = 1.2, lwd = 2, col = "blue", 
+      main = "Theoretical Density: dunif()", ylab = "f(x)")
+
+# 2. Simulated Draws (Flat histogram)
+hist(runif(10000), breaks = 20, col = "lightblue", 
+     main = "Simulated: runif(10000)", xlab = "U")
+```
+
+2. My Claim: 
+===
+
+2. Plug $U$ into the inverse-CDF (quantile function). 
+3. The result is a random draw $X$: $$X = F^{-1}(U)$$
+
+Why does this work? Because of **Probability Integral Transform. **
+
+Probability Integral Transform (PIT)
+===
+
+The PIT states that if you plug random data $X$ into its own CDF $F(X)$, the resulting values will be uniformly distributed! Why?
+
+  - Think of the CDF, $F(X)$, as calculating a percentile rank.
+  
+  - Suppose $X$ represents human heights (which are normally distributed, mostly clustered around the mean).If you randomly select a person from the population, are they more likely to be at the 50th percentile or the 90th percentile? 
+  
+  - **Neither. ** Any randomly chosen individual is equally likely to land at any specific percentile. The percentiles themselves are uniformly spread from 0 to 1, even if the underlying heights are bunched up in the middle. 
+
+```{r}
+# Set seed for reproducibility
+set.seed(4279)
+
+# 1. Generate 10,000 observations from a Standard Normal distribution
+X <- rnorm(10000, mean = 0, sd = 1)
+
+# 2. Apply the CDF to the simulated data
+U <- pnorm(X, mean = 0, sd = 1)
+
+# 3. Visualize the transformation
+par(mfrow = c(1, 2))
+
+# The original data is clustered around the mean
+hist(X, breaks = 30, col = "lightblue", border = "white",
+     main = "Original Data: X ~ N(0,1)", xlab = "X")
+
+# The transformed data is perfectly flat
+hist(U, breaks = 30, col = "lightgreen", border = "white",
+     main = "Transformed: F(X) ~ U(0,1)", xlab = "U = pnorm(X)")
+```
+
+The Inverse Transform Sampling Method: Reversing the PIT
+===
+
+If $F(X)$ maps data to a uniform probability $U$, then the inverse function $F^{-1}(U)$ maps a uniform probability back to the data:
+
+\begin{align*}
+U & = F(X) \\
+F^{-1}(U) & = X 
+\end{align*}
+
+This is exactly what our algorithm says: 
+
+1. Generate a random probability $U \sim \text{Uniform}(0, 1)$
+
+2. Plug $U$ into the inverse-CDF (quantile function). 
+
+3. The result is a random draw $X$: $$X = F^{-1}(U)$$
+
+Inverse Transform Sampling Method in R
+===
+
+**Proving the concept with the Normal Distribution**
+
+We can simulate normal data using only `runif()` and `qnorm()`. This is exactly how many statistical software packages generate random variables under the hood.
+
+```{r, echo=TRUE, fig.height=4, fig.width=8}
+set.seed(4279)
+n <- 10000
+
+# 1. Generate 10,000 uniform random probabilities
+U <- runif(n, min = 0, max = 1)
+
+# 2. Map them through the inverse-CDF (quantile function)
+simulated_X <- qnorm(U, mean = 200, sd = 25)
+
+# 3. Compare to the built-in rnorm
+par(mfrow = c(1, 2))
+hist(simulated_X, main = "Inverse-CDF Method", col = "lightblue", breaks = 30)
+hist(rnorm(n, 200, 25), main = "Built-in rnorm()", col = "lightgray", breaks = 30)
+```
+
+When do we need the Inverse-CDF Method?
+===
+
+**Simulating Custom Distributions**
+
+Base R provides `rnorm`, `rpois`, etc. But what if you are modeling extreme wealth using the Pareto distribution? Base R does not have an `rpareto()` function. You must build it yourself.
+
+1. **Theoretical CDF**: $F(x) = 1 - \left(\frac{x_m}{x}\right)^\alpha$(where $x_m$ is the minimum possible value, and $\alpha$ is the shape parameter).
+
+2. Set equal to U and solve for x (The Inverse CDF):
+$$U = 1 - \left(\frac{x_m}{x}\right)^\alpha \implies x = \frac{x_m}{(1 - U)^{1/\alpha}}$$
+
+Now, we can translate this exact math into R code to simulate data. Let's simulate the wealth of 10,000 individuals where the minimum wealth is $x_m = 100$ and $\alpha = 3$.
+
+```{r}
+
+set.seed(4279)
+
+# 1. Generate Uniform(0,1) probabilities
+u <- runif(10000)
+
+# 2. Define parameters
+x_m <- 100
+alpha <- 3
+
+# 3. Apply the Inverse CDF formula
+simulated_pareto <- x_m / (1 - u)^(1 / alpha)
+
+# 4. Visualize the heavily right-skewed simulated data
+hist(simulated_pareto, breaks = 50, col = "gold", 
+     main = "Simulated Pareto Distribution", xlab = "Wealth (X)")
+```
+
