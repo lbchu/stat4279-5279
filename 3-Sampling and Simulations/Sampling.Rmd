@@ -19,13 +19,17 @@ Outline
 Probability in Statistics
 ===
 
-Intuition: How likely is an event to happen? 
+**Intuition:** How likely is an event to happen? 
 
-Formalize this: We study a random variable $X$ that represents the outcome of a random phenomenon
+**Formalize this:** We study a random variable $X$ that represents the outcome of a random phenomenon
 
-Example: $X$ = corn yield 
+**Example:** $X$ = corn yield 
 
-We want to 1. be able to understand the distribution of our random variable and 2. simulation random draws from this distribution. 
+We want to 
+
+1. be able to understand the distribution of our random variable  
+
+2. simulation random draws from this distribution. 
 
 Common Distributions
 ===
