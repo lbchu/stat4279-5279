@@ -57,6 +57,11 @@ All slides are provided as HTML and are best viewed in a modern web browser.
   - [Source](3-Sampling and Simulations/Sampling.Rmd)
   - [Code](3-Sampling and Simulations/code_sampling.R) 
 
+- **Inverse Transform Sampling**
+  - [Slides](3-Sampling and Simulations/inverseCDF.html)
+  - [Source](3-Sampling and Simulations/inverseCDF.Rmd)
+  - [Code](3-Sampling and Simulations/code_inverseCDF.R) 
+
 ### Notes
 
 - Slides may be updated periodically.

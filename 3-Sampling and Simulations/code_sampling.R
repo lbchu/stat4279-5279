@@ -24,6 +24,7 @@ dnorm(2)
 ## 2) Probability Function (CDF): p*
 ############################################################
 
+X ~ N(0,1)
 # What is P(X <= 0)?
 pnorm(0)
 
@@ -63,7 +64,7 @@ mean(x)
 
 
 mu <- 170
-sigma <- 10
+sigma <- 10 ## standard deviation 
 sim <- rnorm(100, mean = mu, sd = sigma)
 
 mean(sim)
