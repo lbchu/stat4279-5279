@@ -62,6 +62,11 @@ All slides are provided as HTML and are best viewed in a modern web browser.
   - [Source](3-Sampling and Simulations/inverseCDF.Rmd)
   - [Code](3-Sampling and Simulations/code_inverseCDF.R) 
 
+- **Rejection and Importance Sampling**
+  - [Slides](3-Sampling and Simulations/MoreSampling.html)
+  - [Source](3-Sampling and Simulations/MoreSampling.Rmd)
+  - [Code](3-Sampling and Simulations/code_moresampling.R) 
+
 ### Notes
 
 - Slides may be updated periodically.

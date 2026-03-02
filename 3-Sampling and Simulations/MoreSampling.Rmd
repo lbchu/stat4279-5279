@@ -1,0 +1,380 @@
+---
+title: 'Rejection Sampling and Importance Sampling'
+author: "Statistical Computing for Data Analysis"
+output:
+  slidy_presentation:
+    font_adjustment: -1
+  ioslides_presentation: default
+---
+
+Where we are in the course
+===
+
+So far, we have mostly relied on:
+
+- Built-in samplers like `rnorm()`, `rpois()`, `runif()`, ...
+- **Inverse transform sampling** (Inverse CDF method): works great **when you can compute the inverse CDF** $F^{-1}(u)$.
+
+But in practice, you often face one (or more) of these problems:
+
+1. You *can evaluate a density* $f(x)$, but you **cannot invert** the CDF.
+2. The event you care about is **rare**, so naive simulation wastes most samples.
+3. You need your sample to **represent important subgroups** (or reduce Monte Carlo variance).
+
+Today: three practical tools for these situations.
+
+Outline
+===
+
+1. Rejection sampling (to *generate* data when no inverse CDF is available)
+2. Importance sampling (to *estimate* expectations/probabilities efficiently, especially rare events)
+3. Stratified sampling (to improve precision / ensure representation)
+
+A quick decision guide (preview)
+===
+
+**Goal: Generate *independent* draws from a distribution**
+
+- If you know $F^{-1}$: **Inverse transform**
+- If you *can bound* $f(x)$ by a scaled proposal: **Rejection sampling**
+
+
+**Goal: Estimate $E[h(X)]$ or $P(X \in A)$**
+
+- If $A$ is rare under your simulator: **Importance sampling**
+- If there are natural subgroups (regions, age groups, machines, bins): **Stratified sampling**
+
+You can combine methods (e.g., stratify + importance sampling within each stratum).
+
+Rejection sampling: when and why
+===
+
+**When to use it**
+
+You want to simulate from a target density $f(x)$ but:
+
+- $F^{-1}$ is not available (no closed-form quantile function)
+- you can still evaluate $f(x)$ up to a constant, i.e. $f(x) \propto \tilde f(x)$
+
+**Key idea**
+
+Sample from an easier proposal distribution $g(x)$, then *accept* a draw with some probability so that accepted values follow the target.
+
+Rejection sampling: the algorithm 
+===
+
+Assume:
+
+- You can sample from a proposal density $g(x)$
+- You can compute an unnormalized target $\tilde f(x)$
+- You can find a constant $M$ such that for all $x$ in the support:
+  \[
+  \tilde f(x) \le M g(x).
+  \]
+
+Algorithm:
+
+1. Draw $Y \sim g$
+2. Draw $U \sim \text{Uniform}(0,1)$
+3. Accept $Y$ if
+   \[
+   U \le \frac{\tilde f(Y)}{M g(Y)}.
+   \]
+4. Repeat until you have $n$ accepted draws
+
+**Practical note:** The acceptance rate is about $1/M$ (higher is better).
+
+Rejection sampling example: a “weird” density with no inverse CDF
+===
+
+Target density on $[-2,2]$:
+\[
+f(x) \propto \exp(-x^4), \quad -2 \le x \le 2.
+\]
+
+- This is a valid density after normalization (but we don't need the normalizing constant).
+- The CDF has no simple closed form, so inverse transform is not convenient.
+- Easy proposal: Uniform$(-2,2)$.
+
+Because $\tilde f(x) = \exp(-x^4) \le 1$ and $g(x)=1/4$, we can use $M=4$.
+
+Rejection sampler in base R
+===
+
+```{r, echo=TRUE}
+set.seed(4279)
+
+f_tilde <- function(x) exp(-x^4)                # unnormalized target
+g_samp  <- function(n) runif(n, min=-2, max=2)  # proposal sampler
+g_dens  <- function(x) dunif(x, min=-2, max=2)  # proposal density
+
+rej_samp <- function(n, M = 4) {
+  out <- numeric(0)
+  n_try <- 0
+
+  while (length(out) < n) {
+    y <- g_samp(1)
+    u <- runif(1)
+    n_try <- n_try + 1
+
+    # acceptance probability = f_tilde(y) / (M * g(y))
+    # Here it simplifies to exp(-y^4).
+    if (u <= f_tilde(y) / (M * g_dens(y))) out <- c(out, y)
+  }
+
+  list(draws = out, acceptance_rate = n / n_try)
+}
+
+sim <- rej_samp(5000)
+sim$acceptance_rate
+```
+
+Visual check: histogram vs (scaled) density
+===
+
+```{r, echo=TRUE, fig.height=4, fig.width=8}
+x <- seq(-2, 2, length.out = 400)
+
+hist(sim$draws, breaks = 40, freq = FALSE, col = "lightgray",
+     main = "Rejection Sampling: draws from f(x) ∝ exp(-x^4)",
+     xlab = "x")
+
+# Overlay a *scaled* version of the unnormalized density (for shape only)
+curve(f_tilde(x) / integrate(f_tilde, -2, 2)$value, add = TRUE, lwd = 2, col = "blue")
+```
+
+Rejection sampling: practical tips and pitfalls
+===
+
+**Choosing the proposal $g$**
+
+- A *bad* proposal (too narrow, wrong location) forces a large $M$ → very low acceptance
+- A *good* proposal looks like the target (same support, similar shape)
+
+**Red flags in practice**
+
+- Acceptance rate is tiny (e.g., < 1%)
+- You keep rejecting values in certain regions → proposal mismatch
+
+**Takeaway:** Rejection sampling is great for generating data, but can become inefficient in higher dimensions or with poor proposals.
+
+
+Importance sampling: when and why
+===
+
+**When to use it**
+
+You want to estimate an expectation or probability under a target distribution, e.g.
+
+- $E_f[h(X)]$
+- $P_f(X \in A)$
+
+and naive simulation is inefficient, especially if:
+
+- $A$ is a *rare event*
+- $h(X)$ is dominated by tail behavior
+
+**Key idea**
+
+Simulate from a different distribution that visits “important” regions more often, and then reweight.
+
+Importance sampling: the rare-event problem
+===
+
+Suppose we care about a **very rare event**, like:
+
+- a system failure that happens about **1 in 10,000** runs
+- an extreme loss in finance
+- a “once in a long time” tail outcome
+
+If we simulate *normally* (from the usual model), almost every simulated run is a **non-failure**.
+
+That means:
+
+- we spend lots of compute/time generating “boring” samples
+- our estimate of failure probability is noisy because we see few (or zero) failures
+
+Importance sampling: the basic idea
+===
+
+Instead of sampling under “typical conditions,” we:
+
+1. **Intentionally over-sample high-risk conditions** where failures are more likely  
+2. **Down-weight** those high-risk samples so we don’t exaggerate the overall risk
+
+So we get:
+
+- **more information** about the rare event per simulation run
+- a **much faster** (often far less variable) estimate of the true risk
+
+A helpful mental picture
+===
+
+- Standard simulation: “look for a needle in a haystack”
+- Importance sampling: “sample from a smaller pile where needles are more common”
+
+But after we collect needles from the smaller pile, we correct for the fact that we **looked in a biased place** by applying **weights**.
+
+Importance sampling: what is a weight?
+===
+
+A **weight** is a correction factor that says:
+
+> “How much should this sample count when estimating the original probability?”
+
+- Samples drawn from **high-risk** conditions usually get **small weights**
+- Samples drawn from **typical** conditions get **larger weights**
+
+You can think of weights as undoing the bias introduced by “oversampling risk.”
+
+**Our Goal**: estimate an average or probability under the original model \(p(x)\):
+\[
+\mu = \mathbb{E}_{p}[f(X)].
+\]
+
+We simulate from a different model \(q(x)\) and correct with weights:
+\[
+\mu
+= \int f(x)\,p(x)\,dx
+= \int f(x)\,\frac{p(x)}{q(x)}\,q(x)\,dx
+= \mathbb{E}_{q}\left[f(X)\,\underbrace{\frac{p(X)}{q(X)}}_{\text{weight}}\right].
+\]
+
+That’s all: **sample from \(q\)**, then **reweight** to estimate under \(p\).
+
+Practical guidance: choosing the “high-risk sampler”
+===
+
+Your “high-risk” sampling distribution should:
+
+- put more probability where the rare event happens (so you actually see it)
+- still cover all the important regions of the original model
+
+Rule of thumb for tail events:
+
+- If the proposal has **lighter tails** than the original, weights can become **huge**
+- Huge weights → one or two samples dominate → estimates become unstable
+
+Common pitfall (what can go wrong)
+===
+
+**Bad choice:** your high-risk sampler avoids some region where the original model can go.
+
+Result:
+
+- weights can “explode”
+- variance can get **worse** than standard Monte Carlo
+
+In practice, you should always check:
+
+- Do a few weights dominate?
+- Does the estimate jump around a lot when you rerun?
+
+
+Importance sampling example: estimating a rare event probability
+===
+
+Target: \(Z \sim N(0,1)\). We want
+\[
+p = P(Z > 4).
+\]
+
+This is rare (about 3e-5), so with naive sampling you might see **zero** events unless \(n\) is huge.
+
+Proposal: \(Z \sim N(\mu, 1)\) with \(\mu=4\), so we generate more tail values near 4.
+
+Naive Monte Carlo vs importance sampling
+===
+
+```{r, echo=TRUE}
+set.seed(4279)
+n <- 50000
+threshold <- 4
+
+# True value (for checking only)
+p_true <- 1 - pnorm(threshold)
+
+# 1) Naive MC: Z ~ N(0,1)
+z_naive <- rnorm(n)
+p_hat_naive <- mean(z_naive > threshold)
+
+# 2) Importance sampling: sample from N(mu,1)
+mu <- 4
+z_is <- rnorm(n, mean = mu, sd = 1)
+
+# weights: f/g = dnorm(z;0,1) / dnorm(z;mu,1)
+w <- dnorm(z_is, mean = 0, sd = 1) / dnorm(z_is, mean = mu, sd = 1)
+
+p_hat_is <- mean((z_is > threshold) * w)
+
+c(p_true = p_true, naive = p_hat_naive, importance = p_hat_is)
+```
+
+A quick diagnostic: effective sample size (ESS)
+===
+
+Importance sampling can fail if weights are extremely variable.
+
+A simple diagnostic is the **effective sample size**:
+\[
+\text{ESS} = \frac{\left(\sum_i w_i\right)^2}{\sum_i w_i^2}.
+\]
+
+- ESS close to \(n\): weights are stable
+- ESS much smaller than \(n\): many weights are near zero and a few dominate
+
+```{r, echo=TRUE}
+ess <- (sum(w)^2) / sum(w^2)
+c(n = n, ESS = ess, ESS_fraction = ess/n)
+```
+
+Intuition 
+===
+
+**Rejection Sampling**  
+Think of a proposal distribution as your *street-corner strategy* for who you approach.
+
+- You want a perfect sample of a very specific group (e.g., **left-handed violinists**).
+- But instead of stopping *literally anyone*, you choose a *smart place to stand* (your **proposal**):
+  - outside a music conservatory (better),
+  - at a violin shop (even better),
+  - vs. outside a random grocery store (terrible).
+
+**Algorithm analogy:**
+1. You pick someone according to your street-corner strategy (**proposal**).
+
+2. You ask “Are you a left-handed violinist?”  
+
+3. Even if they *seem* plausible, you still only accept them with a certain probability
+
+4. Everyone you reject is thrown away.
+
+**Takeaways:**
+- If you choose a good proposal (stand near violinists), you accept often and it’s efficient.
+
+- If you choose a bad proposal (random street), you reject almost everyone and waste time.
+
+- The payoff: the accepted people are an **exact, unbiased sample** from your target group.
+
+---
+
+**Importance Sampling**  
+Now you’re not trying to *literally isolate* left-handed violinists. You’re trying to estimate something about them (e.g., **average opinion**), efficiently.
+
+- You again choose a smart place to stand (your **proposal**), e.g., “anyone who plays an instrument.”
+- But now you **keep everyone’s answers**.
+- Then you assign each person a **weight** that corrects for the fact that you sampled from an “instrument-player-heavy” crowd instead of the general population.
+
+**Interpretation of weights:**
+- A right-handed drummer might get a tiny weight (not very informative for left-handed violinists).
+
+- A left-handed violinist gets a big weight (highly informative).
+
+**Takeaways:**
+
+- You don’t discard data, so it can be very efficient for *rare* groups/events.
+
+- You’re typically estimating an expectation/probability about the target group, not producing a clean dataset of only target members.
+
+- The risk: if your proposal still doesn’t cover the right kinds of people (or over/under-covers in the wrong way), weights can become extreme and the estimate gets unstable.
+
