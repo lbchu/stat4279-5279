@@ -19,32 +19,28 @@ But in practice, you often face one (or more) of these problems:
 
 1. You *can evaluate a density* $f(x)$, but you **cannot invert** the CDF.
 2. The event you care about is **rare**, so naive simulation wastes most samples.
-3. You need your sample to **represent important subgroups** (or reduce Monte Carlo variance).
 
-Today: three practical tools for these situations.
+Today: two practical tools for these situations.
 
 Outline
 ===
 
 1. Rejection sampling (to *generate* data when no inverse CDF is available)
 2. Importance sampling (to *estimate* expectations/probabilities efficiently, especially rare events)
-3. Stratified sampling (to improve precision / ensure representation)
 
 A quick decision guide (preview)
 ===
 
 **Goal: Generate *independent* draws from a distribution**
 
-- If you know $F^{-1}$: **Inverse transform**
-- If you *can bound* $f(x)$ by a scaled proposal: **Rejection sampling**
+  - If you know $F^{-1}$: **Inverse transform**
+  - If you *can bound* $f(x)$ by a scaled proposal: **Rejection sampling**
 
 
 **Goal: Estimate $E[h(X)]$ or $P(X \in A)$**
 
-- If $A$ is rare under your simulator: **Importance sampling**
-- If there are natural subgroups (regions, age groups, machines, bins): **Stratified sampling**
+  - If $A$ is rare under your simulator: **Importance sampling**
 
-You can combine methods (e.g., stratify + importance sampling within each stratum).
 
 Rejection sampling: when and why
 ===
@@ -167,12 +163,12 @@ Importance sampling: when and why
 You want to estimate an expectation or probability under a target distribution, e.g.
 
 - $E_f[h(X)]$
-- $P_f(X \in A)$
+- $P(X \in A)$
 
 and naive simulation is inefficient, especially if:
 
 - $A$ is a *rare event*
-- $h(X)$ is dominated by tail behavior
+- $f(X)$ is dominated by tail behavior
 
 **Key idea**
 
@@ -200,6 +196,7 @@ Importance sampling: the basic idea
 Instead of sampling under “typical conditions,” we:
 
 1. **Intentionally over-sample high-risk conditions** where failures are more likely  
+
 2. **Down-weight** those high-risk samples so we don’t exaggerate the overall risk
 
 So we get:
@@ -227,20 +224,20 @@ A **weight** is a correction factor that says:
 
 You can think of weights as undoing the bias introduced by “oversampling risk.”
 
-**Our Goal**: estimate an average or probability under the original model \(p(x)\):
+**Our Goal**: estimate an average or probability under the original model \(f(x)\):
 \[
-\mu = \mathbb{E}_{p}[f(X)].
+\mu = \mathbb{E}_{f}[h(X)].
 \]
 
-We simulate from a different model \(q(x)\) and correct with weights:
+We simulate from a different model \(g(x)\) and correct with weights:
 \[
 \mu
-= \int f(x)\,p(x)\,dx
-= \int f(x)\,\frac{p(x)}{q(x)}\,q(x)\,dx
-= \mathbb{E}_{q}\left[f(X)\,\underbrace{\frac{p(X)}{q(X)}}_{\text{weight}}\right].
+= \int h(x)\,f(x)\,dx
+= \int h(x)\,\frac{f(x)}{g(x)}\,g(x)\,dx
+= \mathbb{E}_{g}\left[h(X)\,\underbrace{\frac{f(X)}{g(X)}}_{\text{weight}}\right].
 \]
 
-That’s all: **sample from \(q\)**, then **reweight** to estimate under \(p\).
+That’s all: **sample from \(g\)**, then **reweight** to estimate under \(f\).
 
 Practical guidance: choosing the “high-risk sampler”
 ===
@@ -327,54 +324,3 @@ A simple diagnostic is the **effective sample size**:
 ess <- (sum(w)^2) / sum(w^2)
 c(n = n, ESS = ess, ESS_fraction = ess/n)
 ```
-
-Intuition 
-===
-
-**Rejection Sampling**  
-Think of a proposal distribution as your *street-corner strategy* for who you approach.
-
-- You want a perfect sample of a very specific group (e.g., **left-handed violinists**).
-- But instead of stopping *literally anyone*, you choose a *smart place to stand* (your **proposal**):
-  - outside a music conservatory (better),
-  - at a violin shop (even better),
-  - vs. outside a random grocery store (terrible).
-
-**Algorithm analogy:**
-1. You pick someone according to your street-corner strategy (**proposal**).
-
-2. You ask “Are you a left-handed violinist?”  
-
-3. Even if they *seem* plausible, you still only accept them with a certain probability
-
-4. Everyone you reject is thrown away.
-
-**Takeaways:**
-- If you choose a good proposal (stand near violinists), you accept often and it’s efficient.
-
-- If you choose a bad proposal (random street), you reject almost everyone and waste time.
-
-- The payoff: the accepted people are an **exact, unbiased sample** from your target group.
-
----
-
-**Importance Sampling**  
-Now you’re not trying to *literally isolate* left-handed violinists. You’re trying to estimate something about them (e.g., **average opinion**), efficiently.
-
-- You again choose a smart place to stand (your **proposal**), e.g., “anyone who plays an instrument.”
-- But now you **keep everyone’s answers**.
-- Then you assign each person a **weight** that corrects for the fact that you sampled from an “instrument-player-heavy” crowd instead of the general population.
-
-**Interpretation of weights:**
-- A right-handed drummer might get a tiny weight (not very informative for left-handed violinists).
-
-- A left-handed violinist gets a big weight (highly informative).
-
-**Takeaways:**
-
-- You don’t discard data, so it can be very efficient for *rare* groups/events.
-
-- You’re typically estimating an expectation/probability about the target group, not producing a clean dataset of only target members.
-
-- The risk: if your proposal still doesn’t cover the right kinds of people (or over/under-covers in the wrong way), weights can become extreme and the estimate gets unstable.
-

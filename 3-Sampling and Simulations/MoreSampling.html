@@ -544,10 +544,8 @@ works great <strong>when you can compute the inverse CDF</strong> <span class="m
 invert</strong> the CDF.</li>
 <li>The event you care about is <strong>rare</strong>, so naive
 simulation wastes most samples.</li>
-<li>You need your sample to <strong>represent important
-subgroups</strong> (or reduce Monte Carlo variance).</li>
 </ol>
-<p>Today: three practical tools for these situations.</p>
+<p>Today: two practical tools for these situations.</p>
 </div>
 <div id="outline" class="slide section level1">
 <h1>Outline</h1>
@@ -556,8 +554,6 @@ subgroups</strong> (or reduce Monte Carlo variance).</li>
 available)</li>
 <li>Importance sampling (to <em>estimate</em> expectations/probabilities
 efficiently, especially rare events)</li>
-<li>Stratified sampling (to improve precision / ensure
-representation)</li>
 </ol>
 </div>
 <div id="a-quick-decision-guide-preview" class="slide section level1">
@@ -575,11 +571,7 @@ or <span class="math inline">\(P(X \in A)\)</span></strong></p>
 <ul>
 <li>If <span class="math inline">\(A\)</span> is rare under your
 simulator: <strong>Importance sampling</strong></li>
-<li>If there are natural subgroups (regions, age groups, machines,
-bins): <strong>Stratified sampling</strong></li>
 </ul>
-<p>You can combine methods (e.g., stratify + importance sampling within
-each stratum).</p>
 </div>
 <div id="rejection-sampling-when-and-why" class="slide section level1">
 <h1>Rejection sampling: when and why</h1>
@@ -705,12 +697,12 @@ proposals.</p>
 distribution, e.g.</p>
 <ul>
 <li><span class="math inline">\(E_f[h(X)]\)</span></li>
-<li><span class="math inline">\(P_f(X \in A)\)</span></li>
+<li><span class="math inline">\(P(X \in A)\)</span></li>
 </ul>
 <p>and naive simulation is inefficient, especially if:</p>
 <ul>
 <li><span class="math inline">\(A\)</span> is a <em>rare event</em></li>
-<li><span class="math inline">\(h(X)\)</span> is dominated by tail
+<li><span class="math inline">\(f(X)\)</span> is dominated by tail
 behavior</li>
 </ul>
 <p><strong>Key idea</strong></p>
@@ -739,11 +731,10 @@ zero) failures</li>
 <h1>Importance sampling: the basic idea</h1>
 <p>Instead of sampling under “typical conditions,” we:</p>
 <ol style="list-style-type: decimal">
-<li><strong>Intentionally over-sample high-risk conditions</strong>
-where failures are more likely<br />
-</li>
-<li><strong>Down-weight</strong> those high-risk samples so we don’t
-exaggerate the overall risk</li>
+<li><p><strong>Intentionally over-sample high-risk conditions</strong>
+where failures are more likely</p></li>
+<li><p><strong>Down-weight</strong> those high-risk samples so we don’t
+exaggerate the overall risk</p></li>
 </ol>
 <p>So we get:</p>
 <ul>
@@ -780,18 +771,18 @@ probability?”</p>
 <p>You can think of weights as undoing the bias introduced by
 “oversampling risk.”</p>
 <p><strong>Our Goal</strong>: estimate an average or probability under
-the original model <span class="math inline">\(p(x)\)</span>: <span class="math display">\[
-\mu = \mathbb{E}_{p}[f(X)].
+the original model <span class="math inline">\(f(x)\)</span>: <span class="math display">\[
+\mu = \mathbb{E}_{f}[h(X)].
 \]</span></p>
-<p>We simulate from a different model <span class="math inline">\(q(x)\)</span> and correct with weights: <span class="math display">\[
+<p>We simulate from a different model <span class="math inline">\(g(x)\)</span> and correct with weights: <span class="math display">\[
 \mu
-= \int f(x)\,p(x)\,dx
-= \int f(x)\,\frac{p(x)}{q(x)}\,q(x)\,dx
+= \int h(x)\,f(x)\,dx
+= \int h(x)\,\frac{f(x)}{g(x)}\,g(x)\,dx
 =
-\mathbb{E}_{q}\left[f(X)\,\underbrace{\frac{p(X)}{q(X)}}_{\text{weight}}\right].
+\mathbb{E}_{g}\left[h(X)\,\underbrace{\frac{f(X)}{g(X)}}_{\text{weight}}\right].
 \]</span></p>
-<p>That’s all: <strong>sample from <span class="math inline">\(q\)</span></strong>, then
-<strong>reweight</strong> to estimate under <span class="math inline">\(p\)</span>.</p>
+<p>That’s all: <strong>sample from <span class="math inline">\(g\)</span></strong>, then
+<strong>reweight</strong> to estimate under <span class="math inline">\(f\)</span>.</p>
 </div>
 <div id="practical-guidance-choosing-the-high-risk-sampler" class="slide section level1">
 <h1>Practical guidance: choosing the “high-risk sampler”</h1>
@@ -881,71 +872,6 @@ weights are near zero and a few dominate</li>
 <span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a><span class="fu">c</span>(<span class="at">n =</span> n, <span class="at">ESS =</span> ess, <span class="at">ESS_fraction =</span> ess<span class="sc">/</span>n)</span></code></pre></div>
 <pre><code>##            n          ESS ESS_fraction 
 ## 5.000000e+04 6.514954e+00 1.302991e-04</code></pre>
-</div>
-<div id="intuition" class="slide section level1">
-<h1>Intuition</h1>
-<p><strong>Rejection Sampling</strong><br />
-Think of a proposal distribution as your <em>street-corner strategy</em>
-for who you approach.</p>
-<ul>
-<li>You want a perfect sample of a very specific group (e.g.,
-<strong>left-handed violinists</strong>).</li>
-<li>But instead of stopping <em>literally anyone</em>, you choose a
-<em>smart place to stand</em> (your <strong>proposal</strong>):
-<ul>
-<li>outside a music conservatory (better),</li>
-<li>at a violin shop (even better),</li>
-<li>vs. outside a random grocery store (terrible).</li>
-</ul></li>
-</ul>
-<p><strong>Algorithm analogy:</strong> 1. You pick someone according to
-your street-corner strategy (<strong>proposal</strong>).</p>
-<ol start="2" style="list-style-type: decimal">
-<li><p>You ask “Are you a left-handed violinist?”</p></li>
-<li><p>Even if they <em>seem</em> plausible, you still only accept them
-with a certain probability</p></li>
-<li><p>Everyone you reject is thrown away.</p></li>
-</ol>
-<p><strong>Takeaways:</strong> - If you choose a good proposal (stand
-near violinists), you accept often and it’s efficient.</p>
-<ul>
-<li><p>If you choose a bad proposal (random street), you reject almost
-everyone and waste time.</p></li>
-<li><p>The payoff: the accepted people are an <strong>exact, unbiased
-sample</strong> from your target group.</p></li>
-</ul>
-</div>
-<div class="slide section level1">
-
-<p><strong>Importance Sampling</strong><br />
-Now you’re not trying to <em>literally isolate</em> left-handed
-violinists. You’re trying to estimate something about them (e.g.,
-<strong>average opinion</strong>), efficiently.</p>
-<ul>
-<li>You again choose a smart place to stand (your
-<strong>proposal</strong>), e.g., “anyone who plays an instrument.”</li>
-<li>But now you <strong>keep everyone’s answers</strong>.</li>
-<li>Then you assign each person a <strong>weight</strong> that corrects
-for the fact that you sampled from an “instrument-player-heavy” crowd
-instead of the general population.</li>
-</ul>
-<p><strong>Interpretation of weights:</strong> - A right-handed drummer
-might get a tiny weight (not very informative for left-handed
-violinists).</p>
-<ul>
-<li>A left-handed violinist gets a big weight (highly informative).</li>
-</ul>
-<p><strong>Takeaways:</strong></p>
-<ul>
-<li><p>You don’t discard data, so it can be very efficient for
-<em>rare</em> groups/events.</p></li>
-<li><p>You’re typically estimating an expectation/probability about the
-target group, not producing a clean dataset of only target
-members.</p></li>
-<li><p>The risk: if your proposal still doesn’t cover the right kinds of
-people (or over/under-covers in the wrong way), weights can become
-extreme and the estimate gets unstable.</p></li>
-</ul>
 </div>
 
   <!-- dynamically load mathjax for compatibility with self-contained -->

@@ -96,6 +96,8 @@ g_dens <- function(x) dexp(x, rate = rate)
 ## Importance weights: w(x) = f(x)/g(x)
 w <- f_dens(x_prop) / g_dens(x_prop)
 
+## P(X >a) = E( I(X>a))
+
 ## Importance estimator for E_f[ I(X>a) ]  = E_g[ I(X>a) * w(X) ]
 p_hat_is <- mean((x_prop > a) * w)
 
