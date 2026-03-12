@@ -65,7 +65,8 @@ All slides are provided as HTML and are best viewed in a modern web browser.
 - **Rejection and Importance Sampling**
   - [Slides](3-Sampling and Simulations/MoreSampling.html)
   - [Source](3-Sampling and Simulations/MoreSampling.Rmd)
-  - [Code](3-Sampling and Simulations/code_moresampling.R) 
+  - [Code1](3-Sampling and Simulations/code_moresampling.R) 
+  - [Code2](3-Sampling and Simulations/code_SIR.R) 
 
 ### Notes
 
