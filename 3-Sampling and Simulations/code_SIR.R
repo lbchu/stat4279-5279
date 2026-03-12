@@ -1,6 +1,9 @@
 ## Example of sampling importance resampling 
 
-## Idea: sample from something easy, then reweight and resample to mimic something hard.
+## Idea: sample from something easy (proposal density),
+## then reweight (normalizing weights) and 
+## resample (sample() with probabilities according to weights) 
+## to mimic something hard.
 set.seed(2026)
 
 # -----------------------------
@@ -33,6 +36,6 @@ w <- w_raw / sum(w_raw) ## this is called normalizing the weights, to ensure the
 # -----------------------------
 # 4. Resample using the weights
 # -----------------------------
-M <- 5000
+M <- 500
 x_sir <- sample(x_prop, size = M, replace = TRUE, prob = w)
 
