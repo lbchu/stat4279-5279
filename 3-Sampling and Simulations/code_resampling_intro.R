@@ -31,7 +31,7 @@ abline(v = mean(T_vals), lwd = 2, lty = 2)
 # Numerical summary
 mean(T_vals)
 sd(T_vals)
-
+summary(T_vals)
 ##################################################################
 ### Alternative: make this more reproducible using a function: ### 
 ##################################################################
@@ -107,3 +107,36 @@ p_mc
 ## a normal distribution? 
 
 ## How can we obtain the null distribution and compute the p-value? 
+
+group1 <- c(7.2, 5.4, 6.1, 4.8, 5.9, 6.5, 5.7, 6.8, 5.2, 6.0)
+group2 <- c(4.9, 5.1, 4.3, 5.0, 4.7, 5.4, 4.8, 5.2, 4.6, 5.1)
+
+# Combine data into one vector
+x <- c(group1, group2)
+
+# Original labels
+group <- c(rep("A", length(group1)), rep("B", length(group2)))
+
+# Observed test statistic
+T_obs <- mean(x[group == "A"]) - mean(x[group == "B"])
+T_obs
+
+# Permutation test
+B <- 5000
+T_perm <- numeric(B)
+
+for (b in 1:B) {
+  perm_group <- sample(group)   # shuffle the labels
+  T_perm[b] <- mean(x[perm_group == "A"]) - mean(x[perm_group == "B"])
+}
+
+hist(T_perm,
+     main = "Permutation Distribution of T",
+     xlab = "T after permuting labels",
+     col = "lightgray",
+     border = "white")
+abline(v = T_obs, lwd = 2, lty = 2)
+
+# Two-sided permutation p-value
+p_perm <- mean(abs(T_perm) >= abs(T_obs))
+p_perm
