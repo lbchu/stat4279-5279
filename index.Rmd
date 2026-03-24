@@ -68,6 +68,12 @@ All slides are provided as HTML and are best viewed in a modern web browser.
   - [Code1](3-Sampling and Simulations/code_moresampling.R) 
   - [Code2](3-Sampling and Simulations/code_SIR.R) 
 
+
+- **Simulations for the Null Distribution**
+  - [Slides](3-Sampling and Simulations/Resampling_intro.html)
+  - [Source](3-Sampling and Simulations/Resampling_intro.Rmd)
+  - [Code](3-Sampling and Simulations/code_resampling_intro.R) 
+
 ### Notes
 
 - Slides may be updated periodically.

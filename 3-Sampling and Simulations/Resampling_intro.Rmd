@@ -1,0 +1,391 @@
+---
+title: 'Computational Methods for Hypothesis Testing and Sampling Distributions '
+author: "Statistical Computing for Data Analysis"
+output:
+  slidy_presentation:
+    font_adjustment: -1
+  ioslides_presentation: default
+---
+
+Earlier Material
+===
+
+- how to simulate from distributions
+- how to estimate expectations/probabilities
+- how to sample efficiently
+
+New question
+===
+Now we shift to using simulation for statistical inference.
+
+How can we use repeated simulations (sometimes known as resampling) to carry out
+**hypothesis testing** and understanding **sampling distributions**
+
+- **Before**: simulate random *observations* or *data values* from a target distribution.
+- **Now**: simulate *statistics*
+- **Goal**: approximate the distribution of a (test) statistic. This distribution is known as a sampling distribution. 
+
+What is a sampling distribution? 
+===
+Suppose we repeatedly drawn samples of size $n$ from the same population. Then for each sample, we compute a statistic, such as: 
+
+- the sample mean $\bar{X}$
+- the sample proportion $\hat{p}$
+- the sample median
+- the difference in two sample means
+
+
+Note that **a statistic is random because the sample is random.**
+Therefore it has a distribution. 
+This distribution is called a **sampling distribution**. 
+
+The **sampling distribution** is the distribution of that statistic over repeated samples.
+
+Example: 
+If we repeatedly sample $n = 25$ observations and compute $\bar{X}$ each time, the value of $\bar{X}$ will vary from sample to sample (i.e. the statistic $\bar{X}$ is random). 
+
+The distribution of $\bar{X}$ is the sampling distribution of the sample mean. 
+
+Population distribution vs. sampling distribution
+===
+
+**Population distribution**: Describes the distribution of individual data values or observations in the population. 
+
+This is the distribution we were targeting when we used: 
+
+- the inverse CDF method
+- rejection sampling
+- importance sampling or sampling importance resampling 
+  
+**Sampling distribution**: Describes the distribution of a statistic computed from repeated samples.
+
+
+- Earlier: simulate **observations** from a population distribution
+- Now: study the distribution of a **statistic** built from those observations
+
+
+\[
+\text{Population distribution}
+\;\longrightarrow\;
+\text{draw a sample } X_1,\dots,X_n
+\;\longrightarrow\;
+\text{compute a statistic } T(X_1,\dots,X_n)
+\]
+
+If we repeat this process many times, the resulting values of $T$ form the **sampling distribution** of the statistic.
+
+
+Illustration
+===
+```{r}
+set.seed(4279)
+
+# Settings
+n <- 25          # sample size
+B <- 5000        # number of repeated samples
+
+# Store the sample means
+sample_means <- numeric(B)
+
+# Repeated sampling
+for (b in 1:B) {
+  x <- rnorm(n, mean = 10, sd = 2)   # draw one sample from the population
+  sample_means[b] <- mean(x)         # compute the statistic
+}
+
+# View the sampling distribution
+hist(sample_means,
+     main = "Sampling Distribution of the Sample Mean",
+     xlab = "Sample mean",
+     col = "lightgray",
+     border = "white")
+
+# Compare to the population mean
+abline(v = 10, lwd = 2, lty = 2)
+```
+
+
+```{r}
+set.seed(123)
+
+# One sample from the population
+x <- rnorm(25, mean = 10, sd = 2)
+
+par(mfrow = c(1, 2))
+
+hist(x,
+     main = "One Sample of Raw Data",
+     xlab = "x",
+     col = "lightgray",
+     border = "white")
+
+hist(sample_means,
+     main = "Sampling Distribution of x-bar",
+     xlab = "Sample mean",
+     col = "lightgray",
+     border = "white")
+
+abline(v = 10, lwd = 2, lty = 2)
+```
+
+Why do we care about sampling distributions?
+===
+
+Sampling distributions tell us how much a statistic varies from sample to sample. They help us answer questions like: 
+
+- How much uncertainty is there in my estimate?
+- How can I compute a standard error?
+- How can I construct a confidence interval?
+- How can I test a hypothesis?
+
+Let's focus on this last bullet point. 
+
+Now we understand sampling distributions, how do we use these sampling distributions to carry out statistical inference (i.e. hypothesis tests)?
+
+
+From sampling distribution to inference
+===
+Suppose we want to compare two groups. A natural choice of statistic is
+
+\[
+T = \bar X_1 - \bar X_2
+\]
+
+which measures the difference in sample means. We could also standardize this $T$ by dividing by its standard error. 
+
+We now ask: 
+
+**Is this observed value large enough that
+it suggests a real effect, or could it reasonably have occurred just by chance?** 
+
+Let's say we calculate that $T$ is 0.5. Does this suggest a real effect? What if $T=2$ or $T= -1.5$. How large does $|T|$ need to be to suggest a real difference between $\bar X_1$ and $\bar X_2$? 
+
+How do we answer this in a statistically principled way? 
+
+From a statistic to a null distribution
+===
+Suppose we want to compare two groups, and we use
+
+\[
+T = \bar X_1 - \bar X_2
+\]
+
+to measure the difference between their sample means.
+
+This quantity $T$ is called a **test statistic**.
+
+Once we compute the observed value of $T$, the next question is:
+
+**Is this difference large enough to suggest a real effect, or could it have happened just by chance?**
+
+To answer that, we need a **reference distribution** for $T$.
+
+In hypothesis testing, the reference distribution is the distribution of $T$ when the **null hypothesis is true**. 
+
+This is called the **null distribution**.
+
+### Think back
+
+Up to this point in your statistics courses, how did you usually determine the null distribution?
+
+Why the null distribution matters
+===
+
+Suppose our test statistic is
+
+\[
+T = \bar X_1 - \bar X_2
+\]
+
+and our observed value is
+
+\[
+T_{\text{obs}} = 4.2.
+\]
+
+By itself, the number $4.2$ does not tell us very much.
+
+Its meaning depends on the reference distribution:
+
+- if values around $4.2$ are common under the null, then this is not very surprising
+- if values around $4.2$ are very rare under the null, then this is evidence against $H_0$.
+
+Hypothesis testing workflow
+===
+
+The basic logic is:
+
+1. Determine your null hypothesis and alternative hypothsis. 
+2. Compute a test statistic (evidence from your data)
+3. Determine its distribution under the null
+4. Check whether the observed value is unusual (decision rule: p-value or rejection region)
+
+### Guiding question
+
+If the null hypothesis were true, how likely would it be to see a statistic this extreme?
+
+This is what leads to:
+
+- null distributions
+- $p$-values
+- rejection regions
+
+Where do null distributions come from?
+===
+
+Sometimes we can derive the null distribution mathematically.
+
+Examples you have seen before:
+
+- normal distributions
+- $t$ distributions
+- chi-square distributions
+
+But in many problems, the null distribution is difficult to obtain analytically.
+
+That is where **simulation** and **resampling** become useful. 
+
+Transition to resampling
+===
+
+If the null distribution is hard to derive, we can approximate it by repeated computation.
+
+This leads naturally to methods such as:
+
+- Monte Carlo simulation under $H_0$
+- permutation tests
+
+Later we will talk about general distributions needed for inference, which will include methods like jackknife and bootstrap 
+
+Monte Carlo simulation under $H_0$
+===
+
+Recap: 
+
+- A **sampling distribution** describes how a statistic varies over repeated samples.
+
+- In hypothesis testing, we care about the sampling distribution of the test statistic **when the null hypothesis is true**.
+
+- That sampling distribution is called the **null distribution**.
+
+### Main idea
+
+If we know what the data should look like under $H_0$, we can:
+
+1. simulate many samples under $H_0$
+2. compute the test statistic for each sample
+3. use the resulting values to approximate the null distribution
+
+Example: Monte Carlo null distribution
+===
+
+Suppose we want to test
+
+\[
+H_0: \mu = 10
+\]
+
+using the test statistic
+
+\[
+T = \bar X.
+\]
+
+If $H_0$ is true and the population is Normal with standard deviation $\sigma = 2$, then we can:
+
+- repeatedly simulate samples from $N(10, 2^2)$
+- compute $\bar X$ for each sample
+- use the simulated values of $\bar X$ to approximate the null distribution of $T$
+
+Then we compare our observed statistic to this simulated null distribution.
+
+This is called **Monte Carlo simulation under $H_0$**.
+
+```{r}
+set.seed(123)
+
+# Observed data
+x_obs <- c(10.8, 9.7, 10.5, 11.1, 9.9, 10.4, 10.2, 10.7,
+           9.8, 10.9, 10.1, 10.6, 11.0, 9.6, 10.3, 10.8,
+           10.0, 10.5, 10.4, 10.7)
+
+# Observed test statistic
+T_obs <- mean(x_obs)
+
+# Null hypothesis: mu = 10
+mu0 <- 10
+sigma <- 2
+n <- length(x_obs)
+B <- 5000
+
+# Monte Carlo simulation under H0
+T_null <- numeric(B)
+
+for (b in 1:B) {
+  x_sim <- rnorm(n, mean = mu0, sd = sigma)
+  T_null[b] <- mean(x_sim)
+}
+
+# Plot simulated null distribution
+hist(T_null,
+     main = "Monte Carlo Approximation of the Null Distribution",
+     xlab = "Simulated values of T = sample mean",
+     col = "lightgray",
+     border = "white")
+
+abline(v = T_obs, lwd = 2, lty = 2)
+
+# Two-sided Monte Carlo p-value
+p_val <- mean(abs(T_null - mu0) >= abs(T_obs - mu0))
+p_val
+```
+ When we do not know the null distribution
+===
+
+Sometimes we do **not** know the distribution of the data under $H_0$ well enough to simulate new datasets from a null model.
+
+So instead of generating new data from a known null distribution, we use the **observed data** to construct a reference distribution.
+
+### Main idea
+
+Under the null hypothesis, the observed data often satisfy some kind of **exchangeability** or **relabeling symmetry**.
+
+This means that, if $H_0$ is true, certain rearrangements of the data should not change the distribution of the test statistic under $H_0$.
+
+So we can:
+
+1. keep the observed data values fixed
+2. rearrange or reassign part of the data in a way justified by $H_0$
+3. recompute the test statistic each time
+4. use the resulting values to approximate the null distribution
+
+This gives a **permutation distribution**, which is a data-based approximation to the null distribution.
+### Examples
+
+- In a two-sample problem, we may permute (shuffle) **group labels**
+- In a correlation problem, we may permute one variable relative to the other
+- In a regression problem, we may permute the response relative to the predictor
+
+Permutation as a data-based null distribution
+===
+
+Suppose we want to test whether two groups differ, using
+
+\[
+T = \bar X_1 - \bar X_2.
+\]
+
+If we do **not** know the data distribution under $H_0$, we need another way to approximate the null distribution of $T$.
+
+In this two-sample test setting, we are testing: 
+$H_0: \mu_1 = \mu_2$ versus $H_1: \mu_1 \neq \mu_2$. So under the null hypothesis of **no group difference**, the group labels are interchangeable.
+
+So we:
+
+- keep the observed data values fixed
+- permute (shuffle) the labels many times
+- recompute $T$ after each shuffle
+
+The resulting distribution of these shuffled statistics is the **permutation distribution**.
+
+We use this as a data-based null distribution for hypothesis testing.
