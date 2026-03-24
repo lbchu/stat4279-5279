@@ -1,0 +1,337 @@
+---
+title: 'More Resampling Examples: Permutation and Bootstrap'
+author: "Statistical Computing for Data Analysis"
+output:
+  slidy_presentation:
+    font_adjustment: -1
+  ioslides_presentation: default
+---
+
+More permutation examples
+===
+
+So far, permutation has been introduced as a way to approximate a **null distribution** when we do not know or want to assume the data's distribution under the \(H_0\).
+
+Next, we look at settings where the test statistic is more complex than a difference in means.
+
+Examples:
+
+- correlation between two variables
+- a difference in medians
+
+### Main idea
+
+The logic is still the same:
+
+1. identify what should be exchangeable under \(H_0\)
+2. permute in a way justified by the null
+3. recompute the statistic each time
+4. use the resulting values to approximate the null distribution
+
+Permutation example: correlation
+===
+
+Suppose we want to test whether two variables are associated.
+
+A natural test statistic is the sample correlation
+
+\[
+T = r(x,y).
+\]
+
+Under the null hypothesis of **no association**, the observed pairing between \(x\) and \(y\) should not matter.
+
+So we can:
+
+- keep the \(x\) values fixed
+- permute the \(y\) values
+- recompute the sample correlation each time
+
+The resulting distribution is a **permutation distribution** for the correlation under \(H_0\).
+
+Permutation example: correlation in R
+===
+
+```{r}
+set.seed(123)
+
+x <- c(2.1, 3.4, 4.0, 4.8, 5.2, 6.1, 6.5, 7.3, 8.0, 8.7,
+       9.1, 9.8, 10.4, 11.2, 11.8)
+
+y <- c(3.2, 4.1, 4.5, 4.9, 5.7, 6.0, 6.8, 7.4, 7.9, 8.8,
+       8.9, 9.5, 10.2, 10.8, 11.6)
+
+T_obs <- cor(x, y)
+
+B <- 3000
+T_perm <- numeric(B)
+
+for (b in 1:B) {
+  y_perm <- sample(y)
+  T_perm[b] <- cor(x, y_perm)
+}
+
+hist(T_perm,
+     main = "Permutation Distribution of the Correlation",
+     xlab = "Permuted correlation",
+     col = "lightgray",
+     border = "white")
+
+abline(v = T_obs, lwd = 2, lty = 2)
+
+mean(abs(T_perm) >= abs(T_obs))
+```
+
+
+Permutation example: difference in medians
+===
+
+Permutation is also useful when the statistic is not one of the usual textbook choices.
+
+For example, if we want to compare two groups but care about a **difference in medians**, we can use
+
+\[
+T = \text{median}(X_1) - \text{median}(X_2).
+\]
+
+Do we know how to derive the null distribution of the median using statistical theory? 
+
+If not, we can just use permutation. Under the null hypothesis of no group difference, the labels are exchangeable.
+
+So we can permute the labels exactly as before, but now recompute a **difference in medians** instead of a difference in means.
+
+### Takeaway
+
+Permutation is flexible because it does not require the test statistic to come from a named classical test.
+
+From null distributions to inference more broadly
+===
+
+So far, we have used simulation and permutation to approximate **null distributions** for hypothesis testing.
+
+But in statistics, we also need distributions for other inferential tasks, such as:
+
+- standard errors
+- confidence intervals
+- bias estimation
+
+That leads us to another major resampling method: the **bootstrap**.
+
+Bootstrap: a different inferential goal
+===
+
+Permutation is mainly used to approximate a **null distribution**.
+
+Bootstrap is mainly used to approximate the **sampling distribution of an estimator**.
+
+### Typical bootstrap goals
+
+- estimate a standard error
+- construct a confidence interval
+- assess bias
+
+### Main idea
+
+Treat the observed sample as a stand-in for the population, then repeatedly sample **with replacement** from the observed data.
+
+How the bootstrap works
+===
+
+Suppose our statistic of interest is \(T\).
+
+The bootstrap procedure is:
+
+1. start with the observed sample
+2. draw a bootstrap sample of the same size **with replacement**
+3. compute the statistic \(T\) on that bootstrap sample
+4. repeat many times
+
+The resulting values approximate the **sampling distribution** of the statistic.
+
+Bootstrap example: sample median
+===
+
+The sample median is often harder to study analytically than the sample mean.
+
+Suppose our statistic is
+
+\[
+T = \text{median}(X).
+\]
+
+Suppose we want to estimate its standard error. How could we do that? 
+
+We can use the bootstrap to approximate the sampling distribution of the sample median and estimate its standard error.
+
+Bootstrap example: median in R
+===
+
+```{r}
+set.seed(123)
+
+x <- c(5.1, 6.2, 4.9, 5.7, 100.0, 6.0, 5.4, 5.8, 6.1, 5.6)
+
+T_obs <- median(x)
+
+B <- 3000
+T_boot <- numeric(B)
+
+n <- length(x)
+
+for (b in 1:B) {
+  x_boot <- sample(x, size = n, replace = TRUE)
+  T_boot[b] <- median(x_boot)
+}
+
+hist(T_boot,
+     main = "Bootstrap Distribution of the Sample Median",
+     xlab = "Bootstrap median",
+     col = "lightgray",
+     border = "white")
+
+abline(v = T_obs, lwd = 2, lty = 2)
+
+sd(T_boot)
+quantile(T_boot, c(0.025, 0.975))
+```
+
+Bootstrap example: correlation
+===
+
+We can also bootstrap statistics like the sample correlation.
+
+If our statistic is
+
+\[
+T = r(x,y),
+\]
+
+we can:
+
+- resample the observed \((x_i, y_i)\) pairs **with replacement**
+- compute the correlation for each bootstrap sample
+- use the resulting values to estimate a standard error or confidence interval
+
+### Important note
+
+For bootstrap, we usually resample the **observed units** or **pairs**, not the variables separately.
+
+Bootstrap example: correlation in R
+===
+
+```{r}
+set.seed(123)
+
+x <- c(2.1, 3.4, 4.0, 4.8, 5.2, 6.1, 6.5, 7.3, 8.0, 8.7,
+       9.1, 9.8, 10.4, 11.2, 11.8)
+
+y <- c(3.2, 4.1, 4.5, 4.9, 5.7, 6.0, 6.8, 7.4, 7.9, 8.8,
+       8.9, 9.5, 10.2, 10.8, 11.6)
+
+dat <- data.frame(x = x, y = y)
+
+T_obs <- cor(dat$x, dat$y)
+
+B <- 3000
+T_boot <- numeric(B)
+n <- nrow(dat)
+
+for (b in 1:B) {
+  idx <- sample(1:n, size = n, replace = TRUE)
+  dat_boot <- dat[idx, ]
+  T_boot[b] <- cor(dat_boot$x, dat_boot$y)
+}
+
+hist(T_boot,
+     main = "Bootstrap Distribution of the Correlation",
+     xlab = "Bootstrap correlation",
+     col = "lightgray",
+     border = "white")
+
+abline(v = T_obs, lwd = 2, lty = 2)
+
+sd(T_boot)
+quantile(T_boot, c(0.025, 0.975))
+```
+
+
+Bootstrap example: regression coefficient
+===
+
+Suppose we fit the model
+
+\[
+Y_i = \beta_0 + \beta_1 x_i + \varepsilon_i
+\]
+
+and want uncertainty for \(\hat{\beta}_1\).
+
+We can:
+
+- resample the observed \((x_i, y_i)\) pairs **with replacement**
+- refit the model on each bootstrap sample
+- record the estimated slope each time
+
+This gives a bootstrap approximation to the sampling distribution of \(\hat{\beta}_1\).
+
+Bootstrap example: regression slope in R
+===
+
+```{r}
+library(ISLR2)
+data(Boston)
+
+fit_obs <- lm(medv ~ lstat, data = Boston)
+T_obs <- coef(fit_obs)["lstat"]
+
+B <- 2000
+T_boot <- numeric(B)
+n <- nrow(Boston)
+
+for (b in 1:B) {
+  idx <- sample(1:n, size = n, replace = TRUE)
+  boot_dat <- Boston[idx, ]
+  fit_boot <- lm(medv ~ lstat, data = boot_dat)
+  T_boot[b] <- coef(fit_boot)["lstat"]
+}
+
+hist(T_boot,
+     main = "Bootstrap Distribution of the Regression Slope",
+     xlab = "Bootstrap slope estimate",
+     col = "lightgray",
+     border = "white")
+
+abline(v = T_obs, lwd = 2, lty = 2)
+
+sd(T_boot)
+quantile(T_boot, c(0.025, 0.975))
+```
+
+
+Permutation vs bootstrap
+===
+
+Although both involve repeated resampling, they answer different questions.
+
+### Permutation
+
+- target: **null distribution**
+- goal: **hypothesis testing**
+- common action: shuffle labels, pairings, or assignments
+
+### Bootstrap
+
+- target: **sampling distribution**
+- goal: **uncertainty quantification**
+- common action: resample observations **with replacement**
+
+Summary
+===
+
+- **Monte Carlo under \(H_0\)**: simulate from a known null model
+- **Permutation**: build a null distribution from the observed data using exchangeability
+- **Bootstrap**: approximate the sampling distribution of an estimator by resampling with replacement
+
+### Big picture
+
+Different resampling methods approximate different distributions used in inference.

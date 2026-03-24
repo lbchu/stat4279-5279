@@ -360,6 +360,7 @@ So we can:
 4. use the resulting values to approximate the null distribution
 
 This gives a **permutation distribution**, which is a data-based approximation to the null distribution.
+
 ### Examples
 
 - In a two-sample problem, we may permute (shuffle) **group labels**
