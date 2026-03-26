@@ -67,7 +67,8 @@ B <- 3000
 T_perm <- numeric(B)
 
 for (b in 1:B) {
-  y_perm <- sample(y)
+  y_labels <- sample(1:length(y))
+  y_perm <- y[y_labels]
   T_perm[b] <- cor(x, y_perm)
 }
 
