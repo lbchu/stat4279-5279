@@ -73,6 +73,11 @@ All slides are provided as HTML and are best viewed in a modern web browser.
   - [Slides](3-Sampling and Simulations/Resampling_intro.html)
   - [Source](3-Sampling and Simulations/Resampling_intro.Rmd)
   - [Code](3-Sampling and Simulations/code_resampling_intro.R) 
+  
+- **More Permutation and Bootstrap**
+  - [Slides](3-Sampling and Simulations/More_Resampling.html)
+  - [Source](3-Sampling and Simulations/More_Resampling.Rmd)
+  - [Code](3-Sampling and Simulations/code_more_resampling.R) 
 
 ### Notes
 
