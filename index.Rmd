@@ -77,7 +77,14 @@ All slides are provided as HTML and are best viewed in a modern web browser.
 - **More Permutation and Bootstrap**
   - [Slides](3-Sampling and Simulations/More_Resampling.html)
   - [Source](3-Sampling and Simulations/More_Resampling.Rmd)
-  - [Code](3-Sampling and Simulations/code_more_resampling.R) 
+
+- **Jackknife and Bias Estimation**
+  - [Slides](3-Sampling and Simulations/jackknife.html)
+  - [Source](3-Sampling and Simulations/jackknife.Rmd)
+  
+- **Structured Permutation and Bootstrap**
+  - [Slides](3-Sampling and Simulations/Structured_Resampling.html)
+  - [Source](3-Sampling and Simulations/Structured_Resampling.Rmd)
 
 ### Notes
 
