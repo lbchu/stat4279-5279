@@ -1,0 +1,177 @@
+---
+title: 'Jackknife and Bias Estimation'
+author: "Statistical Computing for Data Analysis"
+output:
+  slidy_presentation:
+    font_adjustment: -1
+  ioslides_presentation: default
+---
+
+```{r, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(ISLR2)
+```
+
+From bootstrap to jackknife
+===
+
+So far, we have used the **bootstrap** to approximate a sampling distribution by resampling **with replacement**.
+
+The **jackknife** takes a different approach.
+
+Instead of drawing many bootstrap samples, we:
+
+- leave out one observation at a time
+- recompute the statistic each time
+- use those leave-one-out values to study variability and bias
+
+### Main idea
+
+The jackknife is a deterministic resampling method based on **systematic deletion**.
+
+What is the jackknife?
+===
+
+Suppose our statistic of interest is $\widehat{\theta}$, computed from \(n\) observations.
+
+For each \(i = 1,\dots,n\), let
+
+\[
+\widehat{\theta}_{(-i)} = \text{the statistic computed after removing observation } i.
+\]
+
+This gives \(n\) leave-one-out estimates.
+
+Let
+
+\[
+\bar{\theta}_{(\cdot)} = \frac{1}{n}\sum_{i=1}^n \widehat{\theta}_{(-i)}.
+\]
+
+These values are the basis for jackknife estimates of **bias** and **standard error**.
+
+Jackknife bias estimate
+===
+
+A standard jackknife estimate of bias is
+
+\[
+\widehat{\mathrm{bias}}_{\text{jack}} = (n-1)\big(\bar\theta_{(\cdot)} - \widehat\theta\big).
+\]
+
+This comes from a second-order term in a Taylor-type expansion,. 
+
+A jackknife bias-corrected estimator is
+
+\[
+\widehat\theta_{\text{jack}} = \widehat\theta - \widehat{\mathrm{bias}}_{\text{jack}}.
+\]
+
+### Interpretation
+
+- if the estimated bias is positive, \(\widehat\theta\) tends to be too large
+- if the estimated bias is negative, \(\widehat\theta\) tends to be too small
+- bias correction subtracts off that estimated bias
+
+Jackknife standard error
+===
+
+A standard jackknife estimate of standard error is
+
+$$
+\widehat{\mathrm{SE}}_{\text{jack}} = 
+\left(\tfrac{n-1}{n}\sum_{i=1}^n \left(\widehat\theta_{(-i)} - \bar\theta_{(\cdot)}\right)^2 \right)^{1/2}
+$$
+
+### Takeaway
+
+The jackknife can be used for:
+
+- **bias estimation**
+- **bias correction**
+- **standard error estimation**
+
+It tends to work best for **smooth statistics**.
+
+
+### Takeaway
+
+Both methods estimate bias, but the bootstrap does so by resampling **with replacement**, whereas the jackknife uses **leave-one-out** samples.
+
+Jackknife example: standard error for correlation
+===
+
+We can also use the jackknife to estimate a standard error.
+
+Using the `Auto` data, let
+
+\[
+\widehat\theta = \text{corr}(\texttt{horsepower}, \texttt{mpg}).
+\]
+
+Then we leave out one row at a time and recompute the sample correlation.
+
+Jackknife SE in R
+===
+
+```{r}
+data(Auto)
+
+dat <- Auto[, c("horsepower", "mpg")]
+n <- nrow(dat)
+
+theta_hat <- cor(dat$horsepower, dat$mpg)
+
+theta_loo <- numeric(n)
+
+for (i in 1:n) {
+  dat_i <- dat[-i, ]
+  theta_loo[i] <- cor(dat_i$horsepower, dat_i$mpg)
+}
+
+theta_bar <- mean(theta_loo)
+
+se_jack <- sqrt((n - 1) / n * sum((theta_loo - theta_bar)^2))
+
+theta_hat
+se_jack
+```
+
+Jackknife vs bootstrap
+===
+
+### Jackknife
+
+- systematic leave-one-out procedure
+- deterministic once the data are fixed
+- often useful for **bias estimation**
+- often works well for **smooth statistics**
+- a local sensitivity / influence calculation
+- It asks: How much does the estimator change when one data point is removed?
+
+### Bootstrap
+
+- resample with replacement 
+- simulation-based (randomness)
+- more flexible in complicated settings
+- often preferred for confidence intervals and general uncertainty quantification
+- It asks: What would happen if the data-generating process were approximated by the empirical distribution?
+
+What is my inferential goal?
+===
+
+### If I want:
+
+- a quick SE estimate
+- a bias estimate
+- an influence-style diagnostic
+
+--> then jackknife is attractive.
+
+### If I want:
+
+- a finite-sample empirical sampling distribution
+- confidence intervals
+- a more flexible procedure that generalizes across many settings
+
+--> then bootstrap is usually better.

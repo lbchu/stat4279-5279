@@ -1,0 +1,318 @@
+---
+title: 'Structured Resampling: Blocks, Clusters, and Stratified Bootstrap'
+author: 'Statistical Computing for Data Analysis'
+output:
+  slidy_presentation:
+    font_adjustment: -1
+  ioslides_presentation: default
+---
+
+Structured resampling
+===
+
+So far, we have mostly discussed permutation and bootstrap for **iid rows**.
+
+But many datasets have additional structure:
+
+- observations are grouped into **blocks**
+- treatment is assigned at the **cluster** level
+
+### Main idea
+
+The hard part is usually not writing the loop.
+
+The hard part is deciding **what the resampling unit should be**.
+
+To choose a valid permutation or bootstrap method, we need to ask:
+
+- What is the unit that is exchangeable under the null?
+- What is the unit that can reasonably be treated as independent?
+
+If we ignore the design of the study or the dependence structure in the data, a resampling method can answer the wrong question.
+
+When ordinary resampling fails
+===
+
+Ordinary resampling works well when observations can be treated as interchangeable individual rows.
+
+But in many settings, the data have additional structure that must be preserved.
+
+### Design structure
+
+Sometimes the resampling scheme should reflect **how the data were collected or how treatment was assigned**.
+
+- In a **blocked experiment**, labels may be exchangeable **within block**, but not across blocks.
+- In a **cluster-randomized study**, treatment labels should be permuted across **clusters**, not individuals.
+- In **stratified sampling**, bootstrap samples should often preserve the **stratum counts**.
+
+### Dependence structure
+
+Sometimes the resampling scheme should reflect **which observations are dependent**.
+
+- In **clustered data**, bootstrap samples should resample **clusters**, not individual rows.
+- In **time series**, resampling individual observations destroys local dependence, so we resample **blocks** instead.
+
+### Takeaway
+The resampling unit should match the unit of **exchangeability** or **independence**.
+
+Block permutation
+===
+
+If treatment was randomized **within each block**, then under the null hypothesis the treatment labels are exchangeable **within block**.
+
+- keep each block intact
+- permute treatment labels only inside that block
+- recompute the statistic
+
+This preserves the original blocking structure.
+
+Block permutation: example in R
+===
+
+```{r}
+set.seed(4279)
+
+block_dat <- data.frame(
+  block = rep(1:8, each = 2),
+  trt = rep(c("A", "B"), times = 8),
+  y = c(12.4, 11.8,
+        10.1,  9.6,
+        13.0, 12.2,
+         9.5,  8.9,
+        11.7, 11.1,
+        14.2, 13.4,
+        10.8, 10.0,
+        12.9, 12.0)
+)
+
+# observed statistic: average within-block treated-minus-control difference
+block_diff <- function(dat) {
+  num_blocks <- length(unique(dat$block))
+  diffs <- numeric(num_blocks) ## pre-allocate vector 
+  blocks <- sort(unique(dat$block))
+
+  for (j in seq_along(blocks)) {
+    dsub <- dat[dat$block == blocks[j], ]
+    diffs[j] <- dsub$y[dsub$trt == "A"] - dsub$y[dsub$trt == "B"]
+  }
+
+  mean(diffs)
+}
+
+T_obs <- block_diff(block_dat)
+T_obs
+```
+
+Permutation Null Distribution
+===
+```{r}
+### Now let's get the permutation distribution (under the H0, there is no difference between treatment and controls)
+B <- 3000
+T_perm <- numeric(B)
+blocks <- unique(block_dat$block)
+
+for (b in 1:B) {
+  dat_perm <- block_dat
+
+  for (g in blocks) {
+    idx <- which(dat_perm$block == g)
+    dat_perm$trt[idx] <- sample(dat_perm$trt[idx])
+  }
+
+  T_perm[b] <- block_diff(dat_perm)
+}
+
+hist(T_perm,
+     main = "Block Permutation Distribution",
+     xlab = "Permuted statistic",
+     col = "lightgray",
+     border = "white")
+abline(v = T_obs, lwd = 2, lty = 2)
+mean(abs(T_perm) >= abs(T_obs))
+```
+
+`aggregate()`: a very useful base R tool
+===
+
+Many structured resampling methods need us to collapse row-level data to a higher level such as:
+
+- cluster means
+- stratum summaries
+
+Base R has a built-in function for this: `aggregate()`.
+
+### Common forms
+
+```{r}
+# one grouping variable
+aggregate(y ~ trt, data = block_dat, FUN = mean)
+
+# more than one grouping variable
+aggregate(y ~ block + trt, data = block_dat, FUN = mean)
+```
+
+### Interpretation
+
+- `y ~ trt` means: summarize `y` separately for each treatment group
+- `y ~ block + trt` means: summarize `y` for each block-treatment combination
+
+You will often use `aggregate()` before permutation or bootstrap when the observational unit is not the row of the data frame.
+
+Cluster permutation: idea
+===
+
+Now suppose treatment was assigned at the **cluster** or **block** level.
+
+Examples:
+
+- classrooms assigned to an intervention
+- hospitals assigned to a policy
+- villages assigned to a program
+
+Then the permutation unit is the **cluster**.
+
+### Cluster permutation
+
+- keep all rows inside a cluster together
+- permute treatment labels across clusters
+- recompute the statistic
+
+If we permute individual rows instead, we destroy the original randomization design.
+
+Cluster permutation: example in R
+===
+
+```{r,include=FALSE}
+set.seed(99)
+
+school_id <- rep(1:6, each = 12)
+school_trt <- rep(c("control", "control", "control",
+                    "program", "program", "program"), each = 12)
+school_effect <- rep(c(-0.4, 0.2, -0.1, 0.1, 0.5, -0.2), each = 12)
+
+score <- 70 +
+  4 * (school_trt == "program") +
+  school_effect +
+  rnorm(72, mean = 0, sd = 3)
+
+school_dat <- data.frame(
+  school = school_id,
+  trt = school_trt,
+  score = score
+)
+```
+
+```{r}
+head(school_dat)
+str(school_dat)
+
+## collapse to school means
+school_means <- aggregate(score ~ school + trt, data = school_dat, FUN = mean)
+
+prog_scores <- school_means$score[school_means$trt == "program"]
+ctrl_scores <- school_means$score[school_means$trt == "control"]
+
+T_obs <- mean(prog_scores) - mean(ctrl_scores)
+
+# exact cluster permutations
+all_prog_sets <- combn(1:nrow(school_means), 3)
+
+T_perm_exact <- numeric(ncol(all_prog_sets))
+
+for (b in 1:ncol(all_prog_sets)) {
+  prog_idx <- all_prog_sets[, b]
+  ctrl_idx <- setdiff(1:nrow(school_means), prog_idx)
+
+  T_perm_exact[b] <- mean(school_means$score[prog_idx]) -
+                     mean(school_means$score[ctrl_idx])
+}
+
+sort(T_perm_exact)
+
+hist(T_perm_exact,
+     main = "Exact Cluster Permutation Distribution",
+     xlab = "Permuted difference in cluster means",
+     col = "lightgray",
+     border = "white")
+abline(v = 0, lwd = 2, col = "blue")
+abline(v = T_obs, lwd = 2, lty = 2)
+
+mean(abs(T_perm_exact) >= abs(T_obs))
+```
+
+Cluster bootstrap: idea
+===
+
+When observations within a cluster are dependent, the bootstrap unit should usually be the **cluster**.
+
+### Cluster bootstrap
+
+- sample clusters **with replacement**
+- keep all observations from each selected cluster
+- recompute the statistic
+
+This mimics repeated sampling of independent clusters.
+
+### Typical use cases
+
+- repeated measures within subject
+- students within school
+- patients within clinic
+
+Cluster bootstrap: example in R
+===
+
+```{r}
+set.seed(321)
+
+# 1. Pre-aggregate to cluster means
+cl_means_df <- aggregate(score ~ school + trt, data = school_dat, FUN = mean)
+ctrl_means  <- cl_means_df$score[cl_means_df$trt == "control"]
+prog_means  <- cl_means_df$score[cl_means_df$trt == "program"]
+
+# 2. Initialize storage
+B <- 2000
+T_boot <- numeric(B)
+
+# 3. Stratified Bootstrap Loop
+set.seed(321) # for reproducibility
+for (b in 1:B) {
+  # Sample with replacement within each group
+  resample_ctrl <- sample(ctrl_means, size = length(ctrl_means), replace = TRUE)
+  resample_prog <- sample(prog_means, size = length(prog_means), replace = TRUE)
+  
+  # Calculate and store the difference in means
+  T_boot[b] <- mean(resample_prog) - mean(resample_ctrl)
+}
+
+hist(T_boot,
+     main = "Cluster Bootstrap Distribution",
+     xlab = "Bootstrap difference in cluster means",
+     col = "lightgray",
+     border = "white")
+abline(v = T_obs, lwd = 2, lty = 2)
+sd(T_boot)
+quantile(T_boot, c(0.025, 0.975))
+```
+
+
+Common mistakes
+===
+
+A structured resampling method can fail if we choose the wrong unit.
+
+### Examples
+
+- blocked experiment: permuting labels across all rows instead of within block
+- cluster-randomized study: permuting individuals instead of clusters
+- clustered data: bootstrapping rows instead of clusters
+
+### Takeaway
+
+Always ask: what was the independent unit in the design or sampling process?
+
+### Big picture
+
+Permutation and bootstrap still follow the same logic as before.
+
+The difference is that the resampling unit must match the data structure.
