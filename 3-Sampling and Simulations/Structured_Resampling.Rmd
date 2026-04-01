@@ -1,5 +1,5 @@
 ---
-title: 'Structured Resampling: Blocks, Clusters, and Stratified Bootstrap'
+title: 'Structured Resampling: Blocks and Clusters'
 author: 'Statistical Computing for Data Analysis'
 output:
   slidy_presentation:
