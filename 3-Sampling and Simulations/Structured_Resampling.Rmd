@@ -43,7 +43,6 @@ Sometimes the resampling scheme should reflect **how the data were collected or 
 
 - In a **blocked experiment**, labels may be exchangeable **within block**, but not across blocks.
 - In a **cluster-randomized study**, treatment labels should be permuted across **clusters**, not individuals.
-- In **stratified sampling**, bootstrap samples should often preserve the **stratum counts**.
 
 ### Dependence structure
 
