@@ -101,7 +101,7 @@ Both methods estimate bias, but the bootstrap does so by resampling **with repla
 Jackknife example: standard error for correlation
 ===
 
-We can also use the jackknife to estimate a standard error.
+We can use the jackknife to estimate a standard error.
 
 Using the `Auto` data, let
 
