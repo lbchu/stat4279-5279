@@ -1,0 +1,487 @@
+---
+title: 'Statistical Learning Setup and Cross-Validation'
+author: "Statistical Computing for Data Analysis"
+output:
+  slidy_presentation:
+    font_adjustment: -1
+  ioslides_presentation: default
+---
+
+```{r, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(ISLR2)
+```
+
+From fitting to prediction
+===
+
+So far, we have focused on **fitting** a regression model. 
+
+We have mostly utilized the `lm()` function to fit a linear regression model. We use this model to do inference or understand the relationship between a response $Y$ and a set of covariates (collectively denoted as $X$).
+
+But in many problems, especially for modern applications, the real goal is **prediction**:
+
+- fit a model on data we already have
+- use that model to predict outcomes for **new observations**
+- evaluate the quality of those predictions. 
+
+In a statistical computing class, this raises a practical question: how do we assess a model's ability to predict new observations? 
+
+A simple regression example
+===
+
+We will use the `Auto` data and predict `mpg` from `horsepower`.
+
+So our starting model is
+
+\[
+\texttt{mpg} \sim \texttt{horsepower}.
+\]
+
+```{r}
+library(ISLR2)
+
+dat <- na.omit(Auto[, c("mpg", "horsepower")])
+n <- nrow(dat)
+
+plot(dat$horsepower, dat$mpg,
+     pch = 19,
+     col = "gray40",
+     xlab = "horsepower",
+     ylab = "mpg",
+     main = "Auto data: mpg vs horsepower")
+
+fit_full <- lm(mpg ~ horsepower, data = dat)
+abline(fit_full, lwd = 2, col = 2)
+```
+
+Prediction error and MSE
+===
+
+Suppose we fit a model and get predicted values \(\widehat y_i\).
+
+A common way to measure prediction error is the **mean squared error**:
+
+\[
+\text{MSE} = \frac{1}{m}\sum_{i=1}^m (y_i - \widehat y_i)^2.
+\]
+
+### Interpretation
+
+- large errors are penalized more heavily because of the square
+- smaller MSE means predictions are, on average, closer to the observed outcomes
+- for regression, MSE is one of the most common prediction metrics
+
+Training MSE
+===
+
+The **training data** are the observations used to fit the model.
+
+If we compute MSE on those same observations, we get the **training MSE**.
+
+\[
+\text{Training MSE} =
+\frac{1}{n_{\text{train}}}
+\sum_{i \in \text{train}} (y_i - \widehat y_i)^2.
+\]
+
+### Important point
+
+Training MSE is usually **too optimistic** as a measure of future prediction performance,
+because the model has already seen those data, therefore by construction it is designed to fit that data well. 
+
+Compute the training MSE
+===
+
+```{r}
+fit_train_only <- lm(mpg ~ horsepower, data = dat)
+pred_train <- predict(fit_train_only, newdata = dat)
+
+train_mse <- mean((dat$mpg - pred_train)^2)
+train_mse
+```
+
+Why is this not enough?
+===
+
+A low training MSE does **not** guarantee good performance on new data.
+
+Why not?
+
+- the coefficients were chosen using these same observations
+- the model is being evaluated on data it was fit to
+- future observations will not be identical to the training sample
+
+For prediction, the quantity we really care about is closer to:
+
+### Real target
+
+How well does the fitted model predict **new, unseen data**?
+
+Training set and test set
+===
+
+A basic solution is the **train/test split**.
+
+We divide the data into two parts:
+
+- **training set**: used to fit the model
+- **test set**: held out and used only for evaluation
+
+Then the **test MSE** is
+
+\[
+\text{Test MSE} =
+\frac{1}{n_{\text{test}}}
+\sum_{i \in \text{test}} (y_i - \widehat y_i)^2,
+\]
+
+where the predictions come from the model fit on the training set.
+
+One random train/test split
+===
+
+```{r}
+set.seed(1)
+
+test_id <- sample(1:n, size = round(n/2), replace = FALSE)
+train_dat <- dat[-test_id, ]
+test_dat  <- dat[test_id, ]
+
+fit_split <- lm(mpg ~ horsepower, data = train_dat)
+
+pred_train <- predict(fit_split, newdata = train_dat)
+pred_test  <- predict(fit_split, newdata = test_dat)
+
+train_mse <- mean((train_dat$mpg - pred_train)^2)
+test_mse  <- mean((test_dat$mpg - pred_test)^2)
+
+c(train_mse = train_mse, test_mse = test_mse)
+```
+
+How should we interpret this?
+===
+
+Typically:
+
+- the **training MSE** is smaller
+- the **test MSE** is larger
+
+That is not by coincidence. 
+
+Tell me why. 
+
+### Takeaway
+
+For prediction, **test error** is usually much more informative than training error.
+
+A weakness of one split
+===
+
+The validation-set approach is simple, but it has a weakness:
+
+### The answer depends on the split.
+
+If a different group of observations lands in the test set, we can get a different test MSE.
+
+So one split can be:
+
+- noisy
+- unstable
+- sensitive to random partitioning
+
+Repeated random splits
+===
+
+We can see this instability by repeating the train/test split many times.
+
+```{r}
+set.seed(2)
+
+B <- 100
+split_mse <- numeric(B)
+
+for (b in 1:B) {
+  test_id <- sample(1:n, size = round(0.25 * n), replace = FALSE)
+  train_dat <- dat[-test_id, ]
+  test_dat  <- dat[test_id, ]
+  
+  fit_b <- lm(mpg ~ horsepower, data = train_dat)
+  pred_b <- predict(fit_b, newdata = test_dat)
+  
+  split_mse[b] <- mean((test_dat$mpg - pred_b)^2)
+}
+
+head(split_mse)
+mean(split_mse)
+sd(split_mse)
+```
+
+Visualizing the split-to-split variability
+===
+
+```{r}
+hist(split_mse,
+     breaks = 15,
+     main = "Test MSE across repeated random splits",
+     xlab = "test MSE",
+     col = "gray80",
+     border = "white")
+```
+
+### Interpretation
+
+The single train/test split gives **one estimate** of prediction error.
+Repeated splits show that this estimate can vary quite a bit.
+
+Cross-validation
+===
+
+Cross-validation is a more systematic way to estimate prediction error.
+
+The idea is to:
+
+- split the data into several parts called **folds**
+- hold out one fold at a time
+- fit the model on the remaining folds
+- evaluate prediction error on the held-out fold
+- average the fold-specific errors
+
+This uses the data more efficiently than a single train/test split.
+
+K-fold cross-validation
+===
+
+In **K-fold CV**:
+
+1. divide the observations into \(K\) folds
+2. for fold \(k\), fit the model on all observations not in fold \(k\)
+3. predict the observations in fold \(k\)
+4. compute the validation error for fold \(k\)
+5. average the \(K\) fold errors
+
+\[
+\text{CV}_K = \frac{1}{K}\sum_{k=1}^K \text{Err}^{(k)}.
+\]
+
+Common choices are \(K=5\) or \(K=10\).
+
+Create fold labels in base R
+===
+
+```{r}
+set.seed(3)
+
+K <- 5
+fold_id <- sample(rep(1:K, length.out = n))
+
+table(fold_id)
+head(fold_id)
+```
+
+Each observation gets a fold label.
+
+If `fold_id[i] = 3`, then observation `i` is used as validation data when we hold out fold 3.
+
+K-fold CV by hand: one loop
+===
+
+```{r}
+cv_mse <- numeric(K)
+
+for (k in 1:K) {
+  train_dat <- dat[fold_id != k, ]
+  valid_dat <- dat[fold_id == k, ]
+  
+  fit_k <- lm(mpg ~ horsepower, data = train_dat)
+  pred_k <- predict(fit_k, newdata = valid_dat)
+  
+  cv_mse[k] <- mean((valid_dat$mpg - pred_k)^2)
+}
+
+cv_mse
+mean(cv_mse)
+```
+
+What the loop is doing
+===
+
+Each pass through the loop does three things:
+
+- defines the current training and validation sets
+- refits the regression model on the training portion only
+- evaluates prediction error on the held-out fold
+
+
+### Statistical computing view
+
+Cross-validation is just an **algorithm**:
+
+- partition the indices
+- refit repeatedly
+- store the errors
+- average at the end
+
+From evaluating one model to comparing several
+===
+
+So far, we have used cross-validation to estimate prediction error for **one** model.
+
+But this is also how we compare **candidate models**.
+
+For example, we might compare:
+
+- a linear model
+- a quadratic model
+- a cubic model
+
+### Main rule
+
+Use the **same folds** for all models, then compare their average validation errors.
+
+Candidate models for comparison
+===
+
+Using the same response and predictor, consider:
+
+\[
+\begin{aligned}
+M_1 &: \texttt{mpg} \sim \texttt{horsepower} \\
+M_2 &: \texttt{mpg} \sim \texttt{poly(horsepower, 2)} \\
+M_3 &: \texttt{mpg} \sim \texttt{poly(horsepower, 3)}
+\end{aligned}
+\]
+
+These models have increasing flexibility.
+
+The question is not:
+
+### Which one has the smallest training MSE?
+
+The prediction-focused question is:
+
+### Which one has the smallest estimated **out-of-sample** error?
+
+Comparing models with the same CV folds
+===
+
+```{r}
+cv_mse_1 <- numeric(K)
+cv_mse_2 <- numeric(K)
+cv_mse_3 <- numeric(K)
+
+for (k in 1:K) {
+  train_dat <- dat[fold_id != k, ]
+  valid_dat <- dat[fold_id == k, ]
+  
+  fit_1 <- lm(mpg ~ horsepower, data = train_dat)
+  fit_2 <- lm(mpg ~ poly(horsepower, 2), data = train_dat)
+  fit_3 <- lm(mpg ~ poly(horsepower, 3), data = train_dat)
+  
+  pred_1 <- predict(fit_1, newdata = valid_dat)
+  pred_2 <- predict(fit_2, newdata = valid_dat)
+  pred_3 <- predict(fit_3, newdata = valid_dat)
+  
+  cv_mse_1[k] <- mean((valid_dat$mpg - pred_1)^2)
+  cv_mse_2[k] <- mean((valid_dat$mpg - pred_2)^2)
+  cv_mse_3[k] <- mean((valid_dat$mpg - pred_3)^2)
+}
+
+c(mean(cv_mse_1), mean(cv_mse_2), mean(cv_mse_3))
+```
+
+Summarize the comparison
+===
+
+```{r}
+cv_summary <- data.frame(
+  model = c("linear", "quadratic", "cubic"),
+  cv_mse = c(mean(cv_mse_1), mean(cv_mse_2), mean(cv_mse_3))
+)
+
+cv_summary[order(cv_summary$cv_mse), ]
+```
+
+### Interpretation
+
+The model with the smallest average CV error is the one that predicts best **among these candidates**, according to this CV procedure.
+
+What students should take from this
+===
+
+Cross-validation gives us a practical rule for model comparison:
+
+- fit each candidate model repeatedly
+- evaluate each one on held-out data
+- average the errors
+- prefer the model with the smaller average validation error
+
+This is still a **prediction** argument, not a hypothesis test.
+
+Later, the same idea will be used for tuning more flexible procedures like ridge and lasso.
+
+LOOCV as a special case
+===
+
+If \(K=n\), each fold contains exactly one observation.
+
+This is called **leave-one-out cross-validation (LOOCV)**.
+
+### Idea
+
+For each observation:
+
+- leave that one point out
+- fit the model on the other \(n-1\) observations
+- predict the left-out point
+- square the error
+
+Then average those \(n\) squared errors.
+
+### In practice
+
+LOOCV is conceptually simple, but 5-fold or 10-fold CV is often used because it is computationally cheaper and usually more stable.
+
+A major implementation rule: no leakage
+===
+
+Anything learned from the data must be learned **inside the training portion** of each split or fold.
+
+Examples:
+
+- scaling predictors
+- imputing missing values
+- transforming variables using estimated quantities
+- selecting features
+
+### Why?
+
+If you use the full data before cross-validation, information from the validation set leaks into the training process, and the reported error can be too small.
+
+Why this matters for us
+===
+
+For this simple linear regression example, the code is short.
+
+But the same outer cross-validation loop will also work later for:
+
+- polynomial regression
+- ridge regression
+- lasso
+- other supervised learning methods
+
+The main thing that changes is the fitting step inside the loop.
+
+### Big picture
+
+Cross-validation is a general **computational template** for estimating out-of-sample prediction error.
+
+Takeaways
+===
+
+- training MSE is usually too optimistic for prediction
+- a test set gives an honest hold-out evaluation
+- one train/test split can be unstable
+- K-fold cross-validation reduces that instability
+- in code, CV is just repeated splitting, fitting, predicting, and averaging
+- later, we will use the same idea for more flexible and regularized models
