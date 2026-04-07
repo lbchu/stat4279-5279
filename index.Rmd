@@ -90,7 +90,7 @@ All slides are provided as HTML and are best viewed in a modern web browser.
 
 - **Introduction to Statistical Learning**
   - [Slides](4-Statistical Learning/statistical_learning_intro.html)
-  - [Source](4-Statistical Learning/statistical_learning_intro.html)
+  - [Source](4-Statistical Learning/statistical_learning_intro.Rmd)
   
 ### Notes
 
