@@ -532,7 +532,8 @@ Statistical Computing for Data Analysis
 <div id="from-fitting-to-prediction" class="slide section level1">
 <h1>From fitting to prediction</h1>
 <p>So far, we have focused on <strong>fitting</strong> a regression
-model. We have mostly utilized the <code>lm()</code> function to fit a
+model.</p>
+<p>We have mostly utilized the <code>lm()</code> function to fit a
 linear regression model. We use this model to do inference or understand
 the relationship between a response <span class="math inline">\(Y\)</span> and a set of covariates (collectively
 denoted as <span class="math inline">\(X\)</span>).</p>
@@ -542,13 +543,10 @@ goal is <strong>prediction</strong>:</p>
 <li>fit a model on data we already have</li>
 <li>use that model to predict outcomes for <strong>new
 observations</strong></li>
-<li>measure how well those predictions work</li>
+<li>evaluate the quality of those predictions.</li>
 </ul>
-<p>In a statistical computing class, this raises a practical
-question:</p>
-<h3 id="main-question">Main question</h3>
-<p>How do we use code to estimate <strong>future prediction
-error</strong> from the data in front of us?</p>
+<p>In a statistical computing class, this raises a practical question:
+how do we assess a model’s ability to predict new observations?</p>
 </div>
 <div id="a-simple-regression-example" class="slide section level1">
 <h1>A simple regression example</h1>
@@ -605,7 +603,8 @@ the model.</p>
 <h3 id="important-point">Important point</h3>
 <p>Training MSE is usually <strong>too optimistic</strong> as a measure
 of future prediction performance, because the model has already seen
-those data.</p>
+those data, therefore by construction it is designed to fit that data
+well.</p>
 </div>
 <div id="compute-the-training-mse" class="slide section level1">
 <h1>Compute the training MSE</h1>
@@ -654,7 +653,7 @@ set.</p>
 <h1>One random train/test split</h1>
 <div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">1</span>)</span>
 <span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a></span>
-<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a>test_id <span class="ot">&lt;-</span> <span class="fu">sample</span>(<span class="dv">1</span><span class="sc">:</span>n, <span class="at">size =</span> <span class="fu">round</span>(<span class="fl">0.25</span> <span class="sc">*</span> n), <span class="at">replace =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a>test_id <span class="ot">&lt;-</span> <span class="fu">sample</span>(<span class="dv">1</span><span class="sc">:</span>n, <span class="at">size =</span> <span class="fu">round</span>(n<span class="sc">/</span><span class="dv">2</span>), <span class="at">replace =</span> <span class="cn">FALSE</span>)</span>
 <span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a>train_dat <span class="ot">&lt;-</span> dat[<span class="sc">-</span>test_id, ]</span>
 <span id="cb4-5"><a href="#cb4-5" tabindex="-1"></a>test_dat  <span class="ot">&lt;-</span> dat[test_id, ]</span>
 <span id="cb4-6"><a href="#cb4-6" tabindex="-1"></a></span>
@@ -668,7 +667,7 @@ set.</p>
 <span id="cb4-14"><a href="#cb4-14" tabindex="-1"></a></span>
 <span id="cb4-15"><a href="#cb4-15" tabindex="-1"></a><span class="fu">c</span>(<span class="at">train_mse =</span> train_mse, <span class="at">test_mse =</span> test_mse)</span></code></pre></div>
 <pre><code>## train_mse  test_mse 
-##  23.26188  26.11024</code></pre>
+##  22.40046  25.90786</code></pre>
 </div>
 <div id="how-should-we-interpret-this" class="slide section level1">
 <h1>How should we interpret this?</h1>
@@ -677,9 +676,8 @@ set.</p>
 <li>the <strong>training MSE</strong> is smaller</li>
 <li>the <strong>test MSE</strong> is larger</li>
 </ul>
-<p>That is not a bug.</p>
-<p>It reflects the fact that the model was built using the training
-data, but the test set acts like a stand-in for future observations.</p>
+<p>That is not by coincidence.</p>
+<p>Tell me why.</p>
 <h3 id="takeaway">Takeaway</h3>
 <p>For prediction, <strong>test error</strong> is usually much more
 informative than training error.</p>
@@ -823,6 +821,98 @@ used as validation data when we hold out fold 3.</p>
 <li>store the errors</li>
 <li>average at the end</li>
 </ul>
+</div>
+<div id="from-evaluating-one-model-to-comparing-several" class="slide section level1">
+<h1>From evaluating one model to comparing several</h1>
+<p>So far, we have used cross-validation to estimate prediction error
+for <strong>one</strong> model.</p>
+<p>But this is also how we compare <strong>candidate
+models</strong>.</p>
+<p>For example, we might compare:</p>
+<ul>
+<li>a linear model</li>
+<li>a quadratic model</li>
+<li>a cubic model</li>
+</ul>
+<h3 id="main-rule">Main rule</h3>
+<p>Use the <strong>same folds</strong> for all models, then compare
+their average validation errors.</p>
+</div>
+<div id="candidate-models-for-comparison" class="slide section level1">
+<h1>Candidate models for comparison</h1>
+<p>Using the same response and predictor, consider:</p>
+<p><span class="math display">\[
+\begin{aligned}
+M_1 &amp;: \texttt{mpg} \sim \texttt{horsepower} \\
+M_2 &amp;: \texttt{mpg} \sim \texttt{poly(horsepower, 2)} \\
+M_3 &amp;: \texttt{mpg} \sim \texttt{poly(horsepower, 3)}
+\end{aligned}
+\]</span></p>
+<p>These models have increasing flexibility.</p>
+<p>The question is not:</p>
+<h3 id="which-one-has-the-smallest-training-mse">Which one has the
+smallest training MSE?</h3>
+<p>The prediction-focused question is:</p>
+<h3 id="which-one-has-the-smallest-estimated-out-of-sample-error">Which
+one has the smallest estimated <strong>out-of-sample</strong>
+error?</h3>
+</div>
+<div id="comparing-models-with-the-same-cv-folds" class="slide section level1">
+<h1>Comparing models with the same CV folds</h1>
+<div class="sourceCode" id="cb21"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" tabindex="-1"></a>cv_mse_1 <span class="ot">&lt;-</span> <span class="fu">numeric</span>(K)</span>
+<span id="cb21-2"><a href="#cb21-2" tabindex="-1"></a>cv_mse_2 <span class="ot">&lt;-</span> <span class="fu">numeric</span>(K)</span>
+<span id="cb21-3"><a href="#cb21-3" tabindex="-1"></a>cv_mse_3 <span class="ot">&lt;-</span> <span class="fu">numeric</span>(K)</span>
+<span id="cb21-4"><a href="#cb21-4" tabindex="-1"></a></span>
+<span id="cb21-5"><a href="#cb21-5" tabindex="-1"></a><span class="cf">for</span> (k <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>K) {</span>
+<span id="cb21-6"><a href="#cb21-6" tabindex="-1"></a>  train_dat <span class="ot">&lt;-</span> dat[fold_id <span class="sc">!=</span> k, ]</span>
+<span id="cb21-7"><a href="#cb21-7" tabindex="-1"></a>  valid_dat <span class="ot">&lt;-</span> dat[fold_id <span class="sc">==</span> k, ]</span>
+<span id="cb21-8"><a href="#cb21-8" tabindex="-1"></a>  </span>
+<span id="cb21-9"><a href="#cb21-9" tabindex="-1"></a>  fit_1 <span class="ot">&lt;-</span> <span class="fu">lm</span>(mpg <span class="sc">~</span> horsepower, <span class="at">data =</span> train_dat)</span>
+<span id="cb21-10"><a href="#cb21-10" tabindex="-1"></a>  fit_2 <span class="ot">&lt;-</span> <span class="fu">lm</span>(mpg <span class="sc">~</span> <span class="fu">poly</span>(horsepower, <span class="dv">2</span>), <span class="at">data =</span> train_dat)</span>
+<span id="cb21-11"><a href="#cb21-11" tabindex="-1"></a>  fit_3 <span class="ot">&lt;-</span> <span class="fu">lm</span>(mpg <span class="sc">~</span> <span class="fu">poly</span>(horsepower, <span class="dv">3</span>), <span class="at">data =</span> train_dat)</span>
+<span id="cb21-12"><a href="#cb21-12" tabindex="-1"></a>  </span>
+<span id="cb21-13"><a href="#cb21-13" tabindex="-1"></a>  pred_1 <span class="ot">&lt;-</span> <span class="fu">predict</span>(fit_1, <span class="at">newdata =</span> valid_dat)</span>
+<span id="cb21-14"><a href="#cb21-14" tabindex="-1"></a>  pred_2 <span class="ot">&lt;-</span> <span class="fu">predict</span>(fit_2, <span class="at">newdata =</span> valid_dat)</span>
+<span id="cb21-15"><a href="#cb21-15" tabindex="-1"></a>  pred_3 <span class="ot">&lt;-</span> <span class="fu">predict</span>(fit_3, <span class="at">newdata =</span> valid_dat)</span>
+<span id="cb21-16"><a href="#cb21-16" tabindex="-1"></a>  </span>
+<span id="cb21-17"><a href="#cb21-17" tabindex="-1"></a>  cv_mse_1[k] <span class="ot">&lt;-</span> <span class="fu">mean</span>((valid_dat<span class="sc">$</span>mpg <span class="sc">-</span> pred_1)<span class="sc">^</span><span class="dv">2</span>)</span>
+<span id="cb21-18"><a href="#cb21-18" tabindex="-1"></a>  cv_mse_2[k] <span class="ot">&lt;-</span> <span class="fu">mean</span>((valid_dat<span class="sc">$</span>mpg <span class="sc">-</span> pred_2)<span class="sc">^</span><span class="dv">2</span>)</span>
+<span id="cb21-19"><a href="#cb21-19" tabindex="-1"></a>  cv_mse_3[k] <span class="ot">&lt;-</span> <span class="fu">mean</span>((valid_dat<span class="sc">$</span>mpg <span class="sc">-</span> pred_3)<span class="sc">^</span><span class="dv">2</span>)</span>
+<span id="cb21-20"><a href="#cb21-20" tabindex="-1"></a>}</span>
+<span id="cb21-21"><a href="#cb21-21" tabindex="-1"></a></span>
+<span id="cb21-22"><a href="#cb21-22" tabindex="-1"></a><span class="fu">c</span>(<span class="fu">mean</span>(cv_mse_1), <span class="fu">mean</span>(cv_mse_2), <span class="fu">mean</span>(cv_mse_3))</span></code></pre></div>
+<pre><code>## [1] 24.27905 19.18896 19.14430</code></pre>
+</div>
+<div id="summarize-the-comparison" class="slide section level1">
+<h1>Summarize the comparison</h1>
+<div class="sourceCode" id="cb23"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" tabindex="-1"></a>cv_summary <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb23-2"><a href="#cb23-2" tabindex="-1"></a>  <span class="at">model =</span> <span class="fu">c</span>(<span class="st">&quot;linear&quot;</span>, <span class="st">&quot;quadratic&quot;</span>, <span class="st">&quot;cubic&quot;</span>),</span>
+<span id="cb23-3"><a href="#cb23-3" tabindex="-1"></a>  <span class="at">cv_mse =</span> <span class="fu">c</span>(<span class="fu">mean</span>(cv_mse_1), <span class="fu">mean</span>(cv_mse_2), <span class="fu">mean</span>(cv_mse_3))</span>
+<span id="cb23-4"><a href="#cb23-4" tabindex="-1"></a>)</span>
+<span id="cb23-5"><a href="#cb23-5" tabindex="-1"></a></span>
+<span id="cb23-6"><a href="#cb23-6" tabindex="-1"></a>cv_summary[<span class="fu">order</span>(cv_summary<span class="sc">$</span>cv_mse), ]</span></code></pre></div>
+<pre><code>##       model   cv_mse
+## 3     cubic 19.14430
+## 2 quadratic 19.18896
+## 1    linear 24.27905</code></pre>
+<h3 id="interpretation-2">Interpretation</h3>
+<p>The model with the smallest average CV error is the one that predicts
+best <strong>among these candidates</strong>, according to this CV
+procedure.</p>
+</div>
+<div id="what-students-should-take-from-this" class="slide section level1">
+<h1>What students should take from this</h1>
+<p>Cross-validation gives us a practical rule for model comparison:</p>
+<ul>
+<li>fit each candidate model repeatedly</li>
+<li>evaluate each one on held-out data</li>
+<li>average the errors</li>
+<li>prefer the model with the smaller average validation error</li>
+</ul>
+<p>This is still a <strong>prediction</strong> argument, not a
+hypothesis test.</p>
+<p>Later, the same idea will be used for tuning more flexible procedures
+like ridge and lasso.</p>
 </div>
 <div id="loocv-as-a-special-case" class="slide section level1">
 <h1>LOOCV as a special case</h1>

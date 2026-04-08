@@ -62,9 +62,9 @@ Suppose we fit a model and get predicted values \(\widehat y_i\).
 
 A common way to measure prediction error is the **mean squared error**:
 
-\[
+$$
 \text{MSE} = \frac{1}{m}\sum_{i=1}^m (y_i - \widehat y_i)^2.
-\]
+$$
 
 ### Interpretation
 
@@ -79,11 +79,11 @@ The **training data** are the observations used to fit the model.
 
 If we compute MSE on those same observations, we get the **training MSE**.
 
-\[
+$$
 \text{Training MSE} =
 \frac{1}{n_{\text{train}}}
 \sum_{i \in \text{train}} (y_i - \widehat y_i)^2.
-\]
+$$
 
 ### Important point
 
@@ -130,11 +130,11 @@ We divide the data into two parts:
 
 Then the **test MSE** is
 
-\[
+$$
 \text{Test MSE} =
 \frac{1}{n_{\text{test}}}
 \sum_{i \in \text{test}} (y_i - \widehat y_i)^2,
-\]
+$$
 
 where the predictions come from the model fit on the training set.
 
@@ -260,9 +260,9 @@ In **K-fold CV**:
 4. compute the validation error for fold \(k\)
 5. average the \(K\) fold errors
 
-\[
+$$
 \text{CV}_K = \frac{1}{K}\sum_{k=1}^K \text{Err}^{(k)}.
-\]
+$$
 
 Common choices are \(K=5\) or \(K=10\).
 
@@ -344,13 +344,13 @@ Candidate models for comparison
 
 Using the same response and predictor, consider:
 
-\[
+$$
 \begin{aligned}
 M_1 &: \texttt{mpg} \sim \texttt{horsepower} \\
 M_2 &: \texttt{mpg} \sim \texttt{poly(horsepower, 2)} \\
 M_3 &: \texttt{mpg} \sim \texttt{poly(horsepower, 3)}
 \end{aligned}
-\]
+$$
 
 These models have increasing flexibility.
 

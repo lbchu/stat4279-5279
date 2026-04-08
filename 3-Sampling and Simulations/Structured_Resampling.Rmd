@@ -57,7 +57,7 @@ The resampling unit should match the unit of **exchangeability** or **independen
 Block permutation
 ===
 
-If treatment was randomized **within each block**, then under the null hypothesis the treatment labels are exchangeable **within block**.
+If treatment was randomized **within each block**, then under the null hypothesis the treatment labels are exchangeable **within block**. 
 
 - keep each block intact
 - permute treatment labels only inside that block
@@ -92,7 +92,7 @@ block_diff <- function(dat) {
 
   for (j in seq_along(blocks)) {
     dsub <- dat[dat$block == blocks[j], ]
-    diffs[j] <- dsub$y[dsub$trt == "A"] - dsub$y[dsub$trt == "B"]
+    diffs[j] <- mean(dsub$y[dsub$trt == "A"]) - mean(dsub$y[dsub$trt == "B"])
   }
 
   mean(diffs)
