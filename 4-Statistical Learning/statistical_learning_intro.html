@@ -899,16 +899,6 @@ error?</h3>
 <p>The model with the smallest average CV error is the one that predicts
 best <strong>among these candidates</strong>, according to this CV
 procedure.</p>
-</div>
-<div id="what-students-should-take-from-this" class="slide section level1">
-<h1>What students should take from this</h1>
-<p>Cross-validation gives us a practical rule for model comparison:</p>
-<ul>
-<li>fit each candidate model repeatedly</li>
-<li>evaluate each one on held-out data</li>
-<li>average the errors</li>
-<li>prefer the model with the smaller average validation error</li>
-</ul>
 <p>This is still a <strong>prediction</strong> argument, not a
 hypothesis test.</p>
 <p>Later, the same idea will be used for tuning more flexible procedures
@@ -934,51 +924,6 @@ errors.</p>
 <h3 id="in-practice">In practice</h3>
 <p>LOOCV is conceptually simple, but 5-fold or 10-fold CV is often used
 because it is computationally cheaper and usually more stable.</p>
-</div>
-<div id="a-major-implementation-rule-no-leakage" class="slide section level1">
-<h1>A major implementation rule: no leakage</h1>
-<p>Anything learned from the data must be learned <strong>inside the
-training portion</strong> of each split or fold.</p>
-<p>Examples:</p>
-<ul>
-<li>scaling predictors</li>
-<li>imputing missing values</li>
-<li>transforming variables using estimated quantities</li>
-<li>selecting features</li>
-</ul>
-<h3 id="why">Why?</h3>
-<p>If you use the full data before cross-validation, information from
-the validation set leaks into the training process, and the reported
-error can be too small.</p>
-</div>
-<div id="why-this-matters-for-us" class="slide section level1">
-<h1>Why this matters for us</h1>
-<p>For this simple linear regression example, the code is short.</p>
-<p>But the same outer cross-validation loop will also work later
-for:</p>
-<ul>
-<li>polynomial regression</li>
-<li>ridge regression</li>
-<li>lasso</li>
-<li>other supervised learning methods</li>
-</ul>
-<p>The main thing that changes is the fitting step inside the loop.</p>
-<h3 id="big-picture">Big picture</h3>
-<p>Cross-validation is a general <strong>computational template</strong>
-for estimating out-of-sample prediction error.</p>
-</div>
-<div id="takeaways" class="slide section level1">
-<h1>Takeaways</h1>
-<ul>
-<li>training MSE is usually too optimistic for prediction</li>
-<li>a test set gives an honest hold-out evaluation</li>
-<li>one train/test split can be unstable</li>
-<li>K-fold cross-validation reduces that instability</li>
-<li>in code, CV is just repeated splitting, fitting, predicting, and
-averaging</li>
-<li>later, we will use the same idea for more flexible and regularized
-models</li>
-</ul>
 </div>
 
   <!-- dynamically load mathjax for compatibility with self-contained -->
