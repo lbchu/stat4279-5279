@@ -95,7 +95,12 @@ All slides are provided as HTML and are best viewed in a modern web browser.
 - **Tuning via Cross-validation**
   - [Slides](4-Statistical Learning/tuning_cross_validation.html)
   - [Source](4-Statistical Learning/tuning_cross_validation.Rmd)
-  - [Code](4-Statistical Learning/tuning_cv.R)
+  - [Code](4-Statistical Learning/code_tuning_cv.R)
+
+- **Regularized Regression**
+  - [Slides](4-Statistical Learning/regularized_regression.html)
+  - [Source](4-Statistical Learning/regularized_regression.Rmd)
+  - [Code](4-Statistical Learning/code_regularized_reg.R)
 
   
 ### Notes
