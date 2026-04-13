@@ -1,0 +1,639 @@
+---
+title: "Regularized Regression"
+subtitle: "Ridge regression, the lasso, and tuning with cross-validation"
+author: "Statistical Computing for Data Analysis"
+institute: "Iowa State University"
+date: ""
+output:
+  slidy_presentation:
+    font_adjustment: -1
+  ioslides_presentation: default
+fontsize: 11pt
+header-includes:
+  - \setbeamertemplate{navigation symbols}{}
+  - \setbeamertemplate{footline}[frame number]
+  - \usepackage{amsmath}
+  - \usepackage{booktabs}
+  - \usepackage{array}
+  - \usepackage{ragged2e}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+```
+
+# From cross-validation to regularization
+
+\justifying
+
+Last time, we focused on estimating prediction error more realistically.
+
+\vspace{0.5em}
+
+The main message was:
+
+\begin{itemize}
+  \item training MSE is often too optimistic,
+  \item test MSE is what we really care about for prediction,
+  \item and cross-validation gives a practical way to estimate prediction error.
+\end{itemize}
+
+\vspace{0.75em}
+
+We now shift gears and think about how to use cross-validation as a tool for \textbf{model tuning}: we will choose a tuning parameter using CV.
+
+What is a tuning parameter? 
+
+A \textbf{tuning parameter} is a value that controls how a learning method behaves. It is not usually estimated in the same way as an ordinary model coefficient. Instead, it is chosen by comparing predictive performance across candidate values. They control aspects of the model's complexity and fit. 
+
+Examples of tuning parameters: 
+
+- $k$ in k-nn regression,
+- choosing $d$ in a polynomial regression,
+- strength of penalty term $\lambda$ in regularized regression,
+- in a regression tree, one tuning choice is the tree size or depth.
+
+So tuning is often about balancing:
+===
+
+- underfitting,
+- overfitting,
+- and out-of-sample prediction accuracy.
+
+
+A first example: polynomial regression
+===
+
+We will use the `Auto` data and predict `mpg` from `horsepower`.
+
+Our usual linear regression model is
+
+\[
+\texttt{mpg} \sim \texttt{horsepower}.
+\]
+
+A polynomial regression model lets us use higher powers of `horsepower`:
+
+\[
+\texttt{mpg} \sim \texttt{horsepower} + \texttt{horsepower}^2 + \cdots + \texttt{horsepower}^d.
+\]
+
+Here, the degree \(d\) is a **tuning parameter**.
+
+Data setup
+===
+
+```{r}
+dat <- na.omit(Auto[, c("mpg", "horsepower")])
+n <- nrow(dat)
+
+plot(dat$horsepower, dat$mpg,
+     pch = 19,
+     col = "gray40",
+     xlab = "horsepower",
+     ylab = "mpg",
+     main = "Auto data: mpg vs horsepower")
+```
+
+What does the degree control?
+===
+
+The polynomial degree controls model flexibility.
+
+- degree 1 gives an ordinary straight-line regression fit
+- degree 2 allows one bend
+- larger degrees allow more curvature and more flexibility
+
+So:
+
+- small degree $\rightarrow$ less flexible model
+- large degree $\rightarrow$ more flexible model
+
+This is exactly the kind of choice that cross-validation can help us make.
+
+Comparing a few polynomial fits
+===
+
+```{r}
+fit1 <- lm(mpg ~ poly(horsepower, 1, raw = TRUE), data = dat)
+fit2 <- lm(mpg ~ poly(horsepower, 2, raw = TRUE), data = dat)
+fit5 <- lm(mpg ~ poly(horsepower, 5, raw = TRUE), data = dat)
+
+hp_grid <- seq(min(dat$horsepower), max(dat$horsepower), length.out = 200)
+grid_dat <- data.frame(horsepower = hp_grid)
+
+plot(dat$horsepower, dat$mpg,
+     pch = 19,
+     col = "gray40",
+     xlab = "horsepower",
+     ylab = "mpg",
+     main = "Polynomial fits of different degrees")
+
+lines(hp_grid, predict(fit1, newdata = grid_dat), lwd = 2, col = 2)
+lines(hp_grid, predict(fit2, newdata = grid_dat), lwd = 2, col = 4)
+lines(hp_grid, predict(fit5, newdata = grid_dat), lwd = 2, col = 3)
+
+legend("topright",
+       legend = c("degree 1", "degree 2", "degree 5"),
+       col = c(2, 4, 3),
+       lwd = 2,
+       bty = "n")
+```
+
+A natural question
+===
+
+If we fit several degrees, how should we choose among them?
+
+One possibility is to compare the **training MSE**.
+
+But that creates a problem:
+
+- more flexible models often fit the training data better
+- so training MSE tends to favor larger degrees
+- that does **not** mean those models will predict better on new data
+
+So choosing the degree by training MSE alone is usually not a good idea.
+
+Training MSE for degrees 1 through 10
+===
+
+```{r}
+deg_grid <- 1:10
+train_mse <- numeric(length(deg_grid))
+
+for (j in seq_along(deg_grid)) {
+  fit_j <- lm(mpg ~ poly(horsepower, deg_grid[j], raw = TRUE), data = dat)
+  pred_j <- predict(fit_j, newdata = dat)
+  train_mse[j] <- mean((dat$mpg - pred_j)^2)
+}
+
+plot(deg_grid, train_mse,
+     type = "b",
+     pch = 19,
+     xlab = "polynomial degree",
+     ylab = "training MSE",
+     main = "Training MSE versus degree")
+```
+
+What do we notice?
+===
+
+As the degree increases, the training MSE usually decreases.
+
+That is not surprising.
+
+A more flexible model has more freedom to fit the data it has already seen.
+
+### But this is not the quantity we care about most.
+
+For prediction, the real question is:
+
+How well does the model perform on **new data**?
+
+A validation-set approach
+===
+
+One way to compare degrees is to use a train/test split.
+
+- fit the model on the training set
+- compute the prediction error on the test set
+- repeat this for several candidate degrees
+
+Then we choose the degree with the smallest **test MSE** for that split.
+
+```{r}
+set.seed(1)
+
+test_id <- sample(1:n, size = round(n / 2), replace = FALSE)
+train_dat <- dat[-test_id, ]
+test_dat  <- dat[test_id, ]
+```
+
+Test MSE for several degrees
+===
+
+```{r}
+deg_grid <- 1:10
+test_mse <- numeric(length(deg_grid))
+
+for (j in seq_along(deg_grid)) {
+  fit_j <- lm(mpg ~ poly(horsepower, deg_grid[j], raw = TRUE), data = train_dat)
+  pred_j <- predict(fit_j, newdata = test_dat)
+  test_mse[j] <- mean((test_dat$mpg - pred_j)^2)
+}
+
+plot(deg_grid, test_mse,
+     type = "b",
+     pch = 19,
+     xlab = "polynomial degree",
+     ylab = "test MSE",
+     main = "Test MSE versus degree")
+```
+
+A weakness of one train/test split
+===
+
+This is better than training MSE, but it still has a weakness:
+
+### the answer depends on the split.
+
+If we randomly choose a different test set, we may get a different test MSE curve, and perhaps a different preferred degree.
+
+So one split can be unstable.
+
+Cross-validation as a tuning tool
+===
+
+Cross-validation gives a more stable way to compare tuning parameter values.
+
+For each candidate degree:
+
+1. split the data into \(K\) folds
+2. leave out one fold
+3. fit the model on the other \(K-1\) folds
+4. compute prediction error on the held-out fold
+5. repeat for all folds
+6. average the errors
+
+That average is the **CV estimate of prediction error** for that degree.
+
+A simple CV function
+===
+
+```{r}
+cv_poly_mse <- function(degree, dat, K = 5) {
+  n <- nrow(dat)
+  fold_id <- sample(rep(1:K, length.out = n))
+  mse_fold <- numeric(K)
+
+  for (k in 1:K) {
+    train_dat <- dat[fold_id != k, ]
+    valid_dat <- dat[fold_id == k, ]
+
+    fit_k <- lm(mpg ~ poly(horsepower, degree, raw = TRUE), data = train_dat)
+    pred_k <- predict(fit_k, newdata = valid_dat)
+
+    mse_fold[k] <- mean((valid_dat$mpg - pred_k)^2)
+  }
+
+  mean(mse_fold)
+}
+```
+
+5-fold CV for degrees 1 through 10
+===
+
+```{r}
+set.seed(2)
+
+deg_grid <- 1:10
+cv_mse <- numeric(length(deg_grid))
+
+for (j in seq_along(deg_grid)) {
+  cv_mse[j] <- cv_poly_mse(deg_grid[j], dat, K = 5)
+}
+
+plot(deg_grid, cv_mse,
+     type = "b",
+     pch = 19,
+     xlab = "polynomial degree",
+     ylab = "5-fold CV MSE",
+     main = "CV MSE versus degree")
+```
+
+How do we choose the degree?
+===
+
+The general strategy is:
+
+- choose a grid of candidate tuning values
+- estimate prediction error for each one using cross-validation
+- select the value with the smallest CV error
+
+In this example:
+
+- the method is polynomial regression
+- the tuning parameter is the degree
+- cross-validation helps us choose the degree in a data-driven way
+
+
+# Why do we need regularization?
+
+\justifying
+
+Ordinary least squares works well in many settings, but it can be unstable for prediction when:
+
+\begin{itemize}
+  \item we have many predictors,
+  \item predictors are strongly correlated,
+  \item or the fitted model is too sensitive to small changes in the data.
+\end{itemize}
+
+\vspace{0.5em}
+
+In those settings, least squares may fit the training data very well but generalize less well to new observations.
+
+\vspace{0.5em}
+
+Regularization addresses this by adding a \textbf{penalty} that shrinks the coefficient estimates.
+
+# Ridge regression
+
+\justifying
+
+Recall that least squares minimizes
+
+\[
+\mathrm{RSS} = \sum_{i=1}^n \left(y_i - \beta_0 - \sum_{j=1}^p \beta_j x_{ij}\right)^2.
+\]
+
+Ridge regression minimizes the penalized objective
+
+\[
+\mathrm{RSS} + \lambda \sum_{j=1}^p \beta_j^2,
+\]
+
+where \(\lambda \ge 0\) is a tuning parameter.
+
+\vspace{0.5em}
+
+Interpretation:
+
+\begin{itemize}
+  \item \(\lambda = 0\) gives ordinary least squares,
+  \item larger \(\lambda\) gives more shrinkage,
+  \item the penalty is applied to the slope coefficients, not the intercept.
+\end{itemize}
+
+# What does ridge regression do?
+
+\justifying
+
+Ridge regression trades off two goals:
+
+\begin{itemize}
+  \item fit the training data well, and
+  \item keep the slope coefficients from becoming too large.
+\end{itemize}
+
+\vspace{0.5em}
+
+As \(\lambda\) increases:
+
+\begin{itemize}
+  \item the coefficients are pulled toward 0,
+  \item the model becomes more stable,
+  \item variance tends to decrease,
+  \item bias tends to increase.
+\end{itemize}
+
+\vspace{0.5em}
+
+This is another example of the \textbf{bias--variance tradeoff}.
+
+# Why do we standardize predictors?
+
+\justifying
+
+The ridge penalty depends on the size of the coefficients.
+
+\vspace{0.5em}
+
+If one predictor is measured on a much larger scale than another, then the penalty will not treat them fairly.
+
+\vspace{0.5em}
+
+So before fitting ridge or lasso, we usually standardize the predictors.
+
+\[
+\tilde{x}_{ij} = \frac{x_{ij} - \bar{x}_j}{s_j}.
+\]
+
+\vspace{0.5em}
+
+Practical note:
+
+\begin{itemize}
+  \item \texttt{glmnet()} standardizes predictors by default,
+  \item but conceptually it is important to understand \emph{why} we do this.
+\end{itemize}
+
+# The lasso
+
+\justifying
+
+The lasso uses a different penalty:
+
+\[
+\mathrm{RSS} + \lambda \sum_{j=1}^p |\beta_j|.
+\]
+
+Like ridge regression, the lasso shrinks coefficients toward 0.
+
+\vspace{0.5em}
+
+But unlike ridge regression, the lasso can set some coefficients \textbf{exactly equal to 0}.
+
+\vspace{0.5em}
+
+This means the lasso can do two things at once:
+
+\begin{itemize}
+  \item regularization for prediction,
+  \item variable selection for a simpler model.
+\end{itemize}
+
+# Ridge versus lasso
+
+\begin{center}
+\renewcommand{\arraystretch}{1.35}
+\begin{tabular}{>{\RaggedRight\arraybackslash}p{0.25\textwidth} >{\RaggedRight\arraybackslash}p{0.30\textwidth} >{\RaggedRight\arraybackslash}p{0.30\textwidth}}
+\toprule
+\textbf{Feature} & \textbf{Ridge} & \textbf{Lasso} \\
+\midrule
+Penalty & \(\sum \beta_j^2\) & \(\sum |\beta_j|\) \\
+Effect on coefficients & Shrinks toward 0 & Shrinks toward 0 \\
+Exact zeros? & No & Often yes \\
+Main strength & Stability & Sparsity / variable selection \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\vspace{0.75em}
+
+Prediction rule of thumb:
+
+\begin{itemize}
+  \item if many predictors carry signal, ridge often does well;
+  \item if only a few predictors matter, lasso often does well.
+\end{itemize}
+
+# How do we choose \(\lambda\)?
+
+\justifying
+
+This is where cross-validation enters.
+
+\vspace{0.5em}
+
+For a grid of candidate \(\lambda\) values:
+
+\begin{enumerate}
+  \item fit the model on the training folds,
+  \item compute prediction error on the validation fold,
+  \item average across folds.
+\end{enumerate}
+
+\vspace{0.75em}
+
+Then we choose the value of \(\lambda\) with the smallest CV error.
+
+\vspace{0.5em}
+
+After that, we refit the model using the selected \(\lambda\) and evaluate on the test set.
+
+# Example setup: the \texttt{Credit} data
+
+\justifying
+
+We will use the \texttt{Credit} data from \texttt{ISLR2}.
+
+\vspace{0.5em}
+
+Response:
+\begin{itemize}
+  \item \texttt{Balance}
+\end{itemize}
+
+Predictors include both quantitative and qualitative variables, so we use \texttt{model.matrix()} to build the design matrix.
+
+```{r data-setup, eval=FALSE}
+library(glmnet)
+library(ISLR2)
+
+data(Credit)
+
+X <- model.matrix(Balance ~ ., data = Credit)[, -1]
+y <- Credit$Balance
+
+set.seed(1)
+n <- nrow(X)
+test_id <- sample(seq_len(n), size = round(n / 2))
+train_id <- setdiff(seq_len(n), test_id)
+```
+
+# Ridge regression in \texttt{R}
+
+\justifying
+
+We fit ridge regression with \texttt{alpha = 0}.
+
+```{r ridge-fit, eval=FALSE}
+ridge_fit <- glmnet(X[train_id, ], y[train_id], alpha = 0)
+plot(ridge_fit, xvar = "lambda", label = TRUE)
+```
+
+\vspace{0.5em}
+
+To choose the tuning parameter by cross-validation:
+
+```{r ridge-cv, eval=FALSE}
+set.seed(1)
+ridge_cv <- cv.glmnet(X[train_id, ], y[train_id], alpha = 0)
+
+plot(ridge_cv)
+
+ridge_lambda_min <- ridge_cv$lambda.min
+ridge_lambda_1se <- ridge_cv$lambda.1se
+```
+
+# Lasso in \texttt{R}
+
+\justifying
+
+We fit the lasso with \texttt{alpha = 1}.
+
+```{r lasso-fit, eval=FALSE}
+lasso_fit <- glmnet(X[train_id, ], y[train_id], alpha = 1)
+plot(lasso_fit, xvar = "lambda", label = TRUE)
+```
+
+Cross-validation works the same way:
+
+```{r lasso-cv, eval=FALSE}
+set.seed(1)
+lasso_cv <- cv.glmnet(X[train_id, ], y[train_id], alpha = 1)
+
+plot(lasso_cv)
+
+lasso_lambda_min <- lasso_cv$lambda.min
+lasso_lambda_1se <- lasso_cv$lambda.1se
+```
+
+# Looking at the selected lasso coefficients
+
+\justifying
+
+Because the lasso can set coefficients exactly to 0, it is useful to inspect the fitted coefficients at the selected value of \(\lambda\).
+
+```{r lasso-coef, eval=FALSE}
+coef(lasso_cv, s = "lambda.min")
+coef(lasso_cv, s = "lambda.1se")
+```
+
+\vspace{0.5em}
+
+Usually:
+
+\begin{itemize}
+  \item \texttt{lambda.min} gives the model with the smallest CV error,
+  \item \texttt{lambda.1se} often gives a simpler model.
+\end{itemize}
+
+# Comparing test MSE
+
+\justifying
+
+We can compare ordinary least squares, ridge, and lasso on the held-out test set.
+
+```{r compare-test-mse, eval=FALSE}
+ols_fit <- lm(Balance ~ ., data = Credit, subset = train_id)
+
+ols_pred <- predict(ols_fit, newdata = Credit[test_id, ])
+ols_mse <- mean((y[test_id] - ols_pred)^2)
+
+ridge_pred <- predict(ridge_cv, newx = X[test_id, ],
+                      s = "lambda.min")
+ridge_mse <- mean((y[test_id] - ridge_pred)^2)
+
+lasso_pred <- predict(lasso_cv, newx = X[test_id, ],
+                      s = "lambda.min")
+lasso_mse <- mean((y[test_id] - lasso_pred)^2)
+
+c(OLS = ols_mse,
+  Ridge = ridge_mse,
+  Lasso = lasso_mse)
+```
+
+\vspace{0.5em}
+
+The best method depends on the data. There is no guarantee that one method always wins.
+
+# What should we remember?
+
+\justifying
+
+\begin{itemize}
+  \item Ridge and lasso are regularized versions of linear regression.
+  \item Both introduce a tuning parameter \(\lambda\).
+  \item Ridge shrinks coefficients; lasso can also set some coefficients to 0.
+  \item Predictors should be standardized before applying the penalty.
+  \item Cross-validation is a practical way to choose \(\lambda\).
+  \item Final model comparison should be based on test-set performance.
+\end{itemize}
+
+\vspace{1em}
+
+\centering
+\Large Cross-validation is not just for assessment; it is also a tool for tuning models.

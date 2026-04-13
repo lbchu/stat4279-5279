@@ -1,0 +1,230 @@
+---
+title: "Tuning with Cross-validation"
+author: "Statistical Computing for Data Analysis"
+institute: "Iowa State University"
+date: ""
+output:
+  slidy_presentation:
+    font_adjustment: -1
+  ioslides_presentation: default
+fontsize: 11pt
+header-includes:
+  - \setbeamertemplate{navigation symbols}{}
+  - \setbeamertemplate{footline}[frame number]
+  - \usepackage{amsmath}
+  - \usepackage{booktabs}
+  - \usepackage{array}
+  - \usepackage{ragged2e}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+```
+
+# From cross-validation to regularization
+
+\justifying
+
+Last time, we focused on estimating prediction error more realistically.
+
+\vspace{0.5em}
+
+The main message was:
+
+\begin{itemize}
+  \item training MSE is often too optimistic,
+  \item test MSE is what we really care about for prediction,
+  \item and cross-validation gives a practical way to estimate prediction error.
+\end{itemize}
+
+\vspace{0.75em}
+
+We now shift gears and think about how to use cross-validation as a tool for \textbf{model tuning}: we will choose a tuning parameter using CV.
+
+What is a tuning parameter? 
+
+A \textbf{tuning parameter} is a value that controls how a learning method behaves. It is not usually estimated in the same way as an ordinary model coefficient. Instead, it is chosen by comparing predictive performance across candidate values. They control aspects of the model's complexity and fit. 
+
+Examples of tuning parameters: 
+
+- $k$ in k-nn regression,
+- choosing $d$ in a polynomial regression,
+- strength of penalty term $\lambda$ in regularized regression,
+- in a regression tree, one tuning choice is the tree size or depth.
+
+So tuning is often about balancing:
+- underfitting,
+- overfitting,
+- and out-of-sample prediction accuracy.
+
+
+An illustrative example: polynomial regression
+===
+
+We will use the `Auto` data and predict `mpg` from `horsepower`.
+
+Our usual linear regression model is
+
+\[
+\texttt{mpg} \sim \texttt{horsepower}.
+\]
+
+A polynomial regression model lets us use higher powers of `horsepower`:
+
+\[
+\texttt{mpg} \sim \texttt{horsepower} + \texttt{horsepower}^2 + \cdots + \texttt{horsepower}^d.
+\]
+
+Here, the degree \(d\) is a **tuning parameter**.
+
+Data setup
+===
+
+```{r}
+library(ISLR2)
+dat <- na.omit(Auto[, c("mpg", "horsepower")])
+n <- nrow(dat)
+
+plot(dat$horsepower, dat$mpg,
+     pch = 19,
+     col = "gray40",
+     xlab = "horsepower",
+     ylab = "mpg",
+     main = "Auto data: mpg vs horsepower")
+```
+
+What does the degree control?
+===
+
+The polynomial degree controls model flexibility.
+
+- degree 1 gives an ordinary straight-line regression fit
+- degree 2 allows one bend
+- larger degrees allow more curvature and more flexibility
+
+So:
+
+- small degree $\rightarrow$ less flexible model
+- large degree $\rightarrow$ more flexible model
+
+This is exactly the kind of choice that cross-validation can help us make. There is statistical decision theory that underlies this (bias-variance tradeoff).
+
+Comparing a few polynomial fits
+===
+
+```{r}
+fit1 <- lm(mpg ~ poly(horsepower, 1, raw = TRUE), data = dat)
+fit2 <- lm(mpg ~ poly(horsepower, 2, raw = TRUE), data = dat)
+fit5 <- lm(mpg ~ poly(horsepower, 5, raw = TRUE), data = dat)
+
+hp_grid <- seq(min(dat$horsepower), max(dat$horsepower), length.out = 200)
+grid_dat <- data.frame(horsepower = hp_grid)
+
+plot(dat$horsepower, dat$mpg,
+     pch = 19,
+     col = "gray40",
+     xlab = "horsepower",
+     ylab = "mpg",
+     main = "Polynomial fits of different degrees")
+
+lines(hp_grid, predict(fit1, newdata = grid_dat), lwd = 2, col = 2)
+lines(hp_grid, predict(fit2, newdata = grid_dat), lwd = 2, col = 4)
+lines(hp_grid, predict(fit5, newdata = grid_dat), lwd = 2, col = 3)
+
+legend("topright",
+       legend = c("degree 1", "degree 2", "degree 5"),
+       col = c(2, 4, 3),
+       lwd = 2,
+       bty = "n")
+```
+
+A natural question
+===
+
+If we fit several degrees, how should we choose among them?
+
+One possibility is to compare the **training MSE**.
+
+But that creates a problem. What problem does it create? 
+
+So choosing the degree by training MSE alone is usually not a good idea. For prediction, the real question is:
+
+How well does the model perform on **new data** (i.e. a test set or validation set)?
+
+A test-set approach
+===
+
+One way to compare degrees is to use a train/test split.
+
+- fit the model on the training set
+- compute the prediction error on the test set
+- repeat this for several candidate degrees
+
+Then we choose the degree with the smallest **test MSE** for that split.
+
+```{r}
+set.seed(1)
+
+test_id <- sample(1:n, size = round(n / 2), replace = FALSE)
+train_dat <- dat[-test_id, ]
+test_dat  <- dat[test_id, ]
+```
+
+Test MSE for several degrees
+===
+
+```{r}
+deg_grid <- 1:10
+test_mse <- numeric(length(deg_grid))
+
+for (j in seq_along(deg_grid)) {
+  fit_j <- lm(mpg ~ poly(horsepower, deg_grid[j], raw = TRUE), data = train_dat)
+  pred_j <- predict(fit_j, newdata = test_dat)
+  test_mse[j] <- mean((test_dat$mpg - pred_j)^2)
+}
+
+plot(deg_grid, test_mse,
+     type = "b",
+     pch = 19,
+     xlab = "polynomial degree",
+     ylab = "test MSE",
+     main = "Test MSE versus degree")
+```
+
+A weakness of one train/test split
+===
+
+This is better than training MSE, but it still has a weakness:
+
+### the answer depends on the split.
+
+If we randomly choose a different test set, we may get a different test MSE curve, and perhaps a different preferred degree.
+
+So one split can be unstable.
+
+Cross-validation as a tuning tool
+===
+
+Cross-validation gives a more stable way to compare tuning parameter values.
+
+For each candidate degree:
+
+1. split the data into \(K\) folds
+2. leave out one fold
+3. fit the model on the other \(K-1\) folds
+4. compute prediction error on the held-out fold
+5. repeat for all folds
+6. average the errors
+
+That average is the **CV estimate of prediction error** for that degree.
+
+How do we choose the degree?
+===
+
+The general strategy is:
+
+- choose a grid of candidate tuning values
+- estimate prediction error for each one using cross-validation
+- select the value with the smallest CV error
+
+

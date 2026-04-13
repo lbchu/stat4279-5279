@@ -92,6 +92,12 @@ All slides are provided as HTML and are best viewed in a modern web browser.
   - [Slides](4-Statistical Learning/statistical_learning_intro.html)
   - [Source](4-Statistical Learning/statistical_learning_intro.Rmd)
   
+- **Tuning via Cross-validation**
+  - [Slides](4-Statistical Learning/tuning_cross_validation.html)
+  - [Source](4-Statistical Learning/tuning_cross_validation.Rmd)
+  - [Code](4-Statistical Learning/tuning_cv.R)
+
+  
 ### Notes
 
 - Slides may be updated periodically.
