@@ -20,16 +20,16 @@ cv_poly_mse <- function(degree, dat, K = 5) {
     train_dat <- dat[fold_id != k, ]
     valid_dat <- dat[fold_id == k, ]
     
-    fit_k <- lm(mpg ~ poly(horsepower, degree, raw = TRUE), data = train_dat)
+    fit_k <- lm(mpg ~ poly(horsepower, degree), data = train_dat)
     pred_k <- predict(fit_k, newdata = valid_dat)
     
     mse_fold[k] <- mean((valid_dat$mpg - pred_k)^2)
   }
   
-  mean(mse_fold)
+  return(mean(mse_fold))
 }
 
-### implement on actual dataset
+### implement on actual data set
 set.seed(2026)
 
 deg_grid <- 1:10

@@ -31,11 +31,10 @@ Last time, we focused on estimating prediction error more realistically.
 
 The main message was:
 
-\begin{itemize}
-  \item training MSE is often too optimistic,
-  \item test MSE is what we really care about for prediction,
-  \item and cross-validation gives a practical way to estimate prediction error.
-\end{itemize}
+  - training MSE is often too optimistic,
+  - test MSE is what we really care about for prediction,
+  - and cross-validation gives a practical way to estimate prediction error.
+
 
 \vspace{0.75em}
 
@@ -43,7 +42,7 @@ We now shift gears and think about how to use cross-validation as a tool for \te
 
 What is a tuning parameter? 
 
-A \textbf{tuning parameter} is a value that controls how a learning method behaves. It is not usually estimated in the same way as an ordinary model coefficient. Instead, it is chosen by comparing predictive performance across candidate values. They control aspects of the model's complexity and fit. 
+A **tuning parameter** is a value that controls how a learning method behaves. It is not usually estimated in the same way as an ordinary model coefficient. Instead, it is chosen by comparing predictive performance across candidate values. They control aspects of the model's complexity and fit. 
 
 Examples of tuning parameters: 
 
@@ -53,6 +52,7 @@ Examples of tuning parameters:
 - in a regression tree, one tuning choice is the tree size or depth.
 
 So tuning is often about balancing:
+
 - underfitting,
 - overfitting,
 - and out-of-sample prediction accuracy.

@@ -534,14 +534,20 @@ Statistical Computing for Data Analysis
 <p>Last time, we focused on estimating prediction error more
 realistically.</p>
 <p>The main message was:</p>
+<ul>
+<li>training MSE is often too optimistic,</li>
+<li>test MSE is what we really care about for prediction,</li>
+<li>and cross-validation gives a practical way to estimate prediction
+error.</li>
+</ul>
 <p>We now shift gears and think about how to use cross-validation as a
 tool for : we will choose a tuning parameter using CV.</p>
 <p>What is a tuning parameter?</p>
-<p>A is a value that controls how a learning method behaves. It is not
-usually estimated in the same way as an ordinary model coefficient.
-Instead, it is chosen by comparing predictive performance across
-candidate values. They control aspects of the model’s complexity and
-fit.</p>
+<p>A <strong>tuning parameter</strong> is a value that controls how a
+learning method behaves. It is not usually estimated in the same way as
+an ordinary model coefficient. Instead, it is chosen by comparing
+predictive performance across candidate values. They control aspects of
+the model’s complexity and fit.</p>
 <p>Examples of tuning parameters:</p>
 <ul>
 <li><span class="math inline">\(k\)</span> in k-nn regression,</li>
@@ -551,8 +557,12 @@ regression,</li>
 <li>in a regression tree, one tuning choice is the tree size or
 depth.</li>
 </ul>
-<p>So tuning is often about balancing: - underfitting, - overfitting, -
-and out-of-sample prediction accuracy.</p>
+<p>So tuning is often about balancing:</p>
+<ul>
+<li>underfitting,</li>
+<li>overfitting,</li>
+<li>and out-of-sample prediction accuracy.</li>
+</ul>
 </div>
 <div id="an-illustrative-example-polynomial-regression" class="slide section level1">
 <h1>An illustrative example: polynomial regression</h1>
