@@ -1,0 +1,36 @@
+
+1. What is the overall job we are trying to do?
+Compare ridge and lasso on the same dataset using train/test splitting and cross-validation.
+2. If we write ridge and lasso separately, which parts are the same?
+The fold construction, the MSE calculation, the CV loop, the prediction step, and the coefficient-path plot.
+3. What actually changes from ridge to lasso?
+Mostly just alpha:
+alpha = 0 for ridge
+alpha = 1 for lasso
+4. Does this code block do one clear job?
+If yes, it is a good candidate for a function.
+5. What are the inputs to that job?
+For example, a CV function needs X, y, alpha, a lambda grid, and fold assignments.
+6. What output do we need back from that job?
+For manual CV, we want:
+CV error for each lambda
+the chosen lambda.min
+7. Will we reuse this chunk again today or on another dataset?
+If yes, it is worth turning into a function.
+8. What should stay outside the function?
+Things specific to this one analysis:
+loading Credit
+choosing the train/test split
+printing or interpreting results
+
+
+- make_folds()
+Reusable in any CV example.
+- mse()
+Tiny, but it makes the code readable.
+- cv_glmnet_base()
+This is the main reusable piece. Same logic for ridge and lasso. only thing that changes is alpha = 0 or alpha =1
+- plot_cv_curve()
+Same visual summary for both methods.
+- plot_coef_paths()
+Same kind of plot for both methods.

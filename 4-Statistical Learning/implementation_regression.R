@@ -1,6 +1,6 @@
 
 
-# Response: medv
+# Response: Salary
 # Predictors: everything else
 Hitters2 = na.omit(Hitters)
 xy <- make_xy(Salary ~ ., data = Hitters2)
