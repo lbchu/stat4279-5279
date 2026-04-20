@@ -104,6 +104,12 @@ All slides are provided as HTML and are best viewed in a modern web browser.
   - [Code2](4-Statistical Learning/implementation_regression.R)
   - [Notes](4-Statistical Learning/04_16_26.pdf)
 
+- **Classification**
+  - [Slides](4-Statistical Learning/classification.html)
+  - [Source](4-Statistical Learning/classification.Rmd)
+  - [Code](4-Statistical Learning/code_logistic_regression.R)
+
+
   
 ### Notes
 
