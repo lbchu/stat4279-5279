@@ -102,6 +102,7 @@ All slides are provided as HTML and are best viewed in a modern web browser.
   - [Source](4-Statistical Learning/regularized_regression.Rmd)
   - [Code1](4-Statistical Learning/helper_functions_regression.R)
   - [Code2](4-Statistical Learning/implementation_regression.R)
+  - [Notes](4-Statistical Learning/04_16_26.pdf)
 
   
 ### Notes

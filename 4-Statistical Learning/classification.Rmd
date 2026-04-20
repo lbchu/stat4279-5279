@@ -1,0 +1,382 @@
+---
+title: "Classification"
+subtitle: "Logistic regression, thresholding, ROC/AUC, and k-nearest neighbors"
+author: "Statistical Computing for Data Analysis"
+output:
+  slidy_presentation:
+    font_adjustment: -1
+  ioslides_presentation: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+```
+
+From regression to classification
+===
+
+In regression, the response is quantitative.
+
+In classification, the response is categorical.
+
+Examples:
+
+- email is spam or not spam,
+- loan defaults or does not default,
+- tumor is benign or malignant.
+
+For classification, we often want:
+
+- a **predicted class**,
+- and sometimes a **predicted probability**.
+
+Example: the `Default` data
+===
+
+We will use the `Default` data from `ISLR2`.
+
+- response: `default` (`Yes` or `No`)
+- predictors: `balance` and `income`
+
+We will compare:
+
+- **logistic regression**
+- **k-nearest neighbors (kNN) classification**
+
+Train/test split
+===
+
+```{r data-setup, eval=FALSE}
+library(ISLR2)
+
+data(Default)
+
+dat <- Default[, c("default", "balance", "income")]
+
+y <- dat$default
+x <- as.matrix(dat[, c("balance", "income")])
+
+set.seed(1)
+n <- nrow(dat)
+train_id <- sample(seq_len(n), size = round(n / 2))
+test_id <- setdiff(seq_len(n), train_id)
+```
+
+Logistic regression
+===
+
+Logistic regression models the conditional probability of class membership:
+
+\[
+p(x) = P(Y = 1 \mid X = x).
+\]
+
+Instead of modeling \(p(x)\) directly, it models the **log-odds**:
+
+\[
+\log\left(\frac{p(x)}{1 - p(x)}\right)
+=
+\beta_0 + \beta_1 x_1 + \cdots + \beta_p x_p.
+\]
+
+This guarantees fitted probabilities between 0 and 1.
+
+Fit logistic regression in `R`
+===
+
+```{r logistic-fit, eval=FALSE}
+log_fit <- glm(default ~ balance + income,
+               data = dat,
+               subset = train_id,
+               family = binomial)
+
+log_prob <- predict(log_fit,
+                    newdata = dat[test_id, ],
+                    type = "response")
+
+head(log_prob)
+range(log_prob)
+```
+
+Logistic regression gives probabilities
+===
+
+A fitted probability is more informative than a class label alone.
+
+Examples:
+
+- 0.02 suggests a very low estimated chance of default,
+- 0.45 suggests much more uncertainty,
+- 0.90 suggests a very high estimated chance of default.
+
+To get a class label, we still need to choose a **threshold**.
+
+From probabilities to class labels
+===
+
+A common default threshold is 0.5:
+
+```{r logistic-class, eval=FALSE}
+log_class <- ifelse(log_prob > 0.5, "Yes", "No")
+log_class <- factor(log_class, levels = levels(y))
+
+table(predicted = log_class,
+      truth = y[test_id])
+
+mean(log_class != y[test_id])
+```
+
+The threshold does not have to be 0.5.
+
+Confusion matrix
+===
+
+For a binary classifier, the confusion matrix records:
+
+- **TP**: predicted Yes, truth Yes
+- **FP**: predicted Yes, truth No
+- **TN**: predicted No, truth No
+- **FN**: predicted No, truth Yes
+
+These counts help us move beyond a single overall error rate.
+
+
+True positive rate and false positive rate
+===
+
+Two important summaries are:
+
+\[
+\text{TPR} = \frac{TP}{TP + FN}
+\]
+
+and
+
+\[
+\text{FPR} = \frac{FP}{FP + TN}.
+\]
+
+Interpretation:
+
+- **TPR** = among the true Yes observations, how many did we correctly flag?
+- **FPR** = among the true No observations, how many did we incorrectly flag?
+
+
+Threshold choice changes the classifier
+===
+
+A smaller threshold usually:
+
+- predicts **Yes** more often,
+- increases **TPR**,
+- but also increases **FPR**.
+
+A larger threshold usually:
+
+- predicts **Yes** less often,
+- decreases **FPR**,
+- but may also decrease **TPR**.
+
+This is a tradeoff.
+
+Calibration: are the probabilities meaningful?
+===
+
+A model is **well calibrated** if observations with predicted probability near \(p\) are positive about \(p\) fraction of the time.
+
+Examples:
+
+- among cases with predicted probability around 0.10, about 10% should be Yes,
+- among cases with predicted probability around 0.70, about 70% should be Yes.
+
+Calibration is about the **probabilities**, not the thresholded class labels.
+
+ROC curve
+===
+
+The **ROC curve** tracks classifier performance across many thresholds.
+
+For each threshold, compute:
+
+- x-axis: **FPR**
+- y-axis: **TPR**
+
+So the ROC curve summarizes the TPR/FPR tradeoff over all thresholds.
+
+Compute ROC points manually
+===
+
+```{r roc-points, eval=FALSE}
+threshold_grid <- seq(0, 1, by = 0.01)
+roc_mat <- matrix(NA, nrow = length(threshold_grid), ncol = 2)
+colnames(roc_mat) <- c("FPR", "TPR")
+
+for (i in seq_along(threshold_grid)) {
+  th <- threshold_grid[i]
+  pred_i <- factor(ifelse(log_prob > th, "Yes", "No"),
+                   levels = levels(y))
+
+  TP_i <- sum(pred_i == "Yes" & y[test_id] == "Yes")
+  FP_i <- sum(pred_i == "Yes" & y[test_id] == "No")
+  TN_i <- sum(pred_i == "No"  & y[test_id] == "No")
+  FN_i <- sum(pred_i == "No"  & y[test_id] == "Yes")
+
+  roc_mat[i, ] <- c(FP_i / (FP_i + TN_i),
+                    TP_i / (TP_i + FN_i))
+}
+
+plot(roc_mat[, "FPR"], roc_mat[, "TPR"], type = "l",
+     xlab = "False positive rate",
+     ylab = "True positive rate")
+abline(0, 1, lty = 2)
+```
+
+AUC
+===
+
+The **area under the ROC curve (AUC)** summarizes the ROC curve with one number.
+
+- AUC near 0.5: weak discrimination
+- AUC near 1: strong discrimination
+
+Interpretation:
+
+- AUC is the probability that a randomly chosen Yes case receives a higher score than a randomly chosen No case.
+
+Approximate AUC with the trapezoid rule
+===
+
+```{r auc-manual, eval=FALSE}
+ord_roc <- order(roc_mat[, "FPR"], roc_mat[, "TPR"])
+roc_ord <- roc_mat[ord_roc, , drop = FALSE]
+
+auc <- sum(diff(roc_ord[, "FPR"]) *
+             (head(roc_ord[, "TPR"], -1) + tail(roc_ord[, "TPR"], -1)) / 2)
+
+auc
+```
+
+How should we evaluate a classifier?
+===
+
+Different summaries answer different questions:
+
+- **test error / accuracy**: how often are labels correct at one threshold?
+- **TPR / FPR**: what kinds of mistakes are we making at that threshold?
+- **calibration**: do predicted probabilities behave like probabilities?
+- **ROC / AUC**: how well does the model rank observations across thresholds?
+
+k-nearest neighbors classification
+===
+
+kNN classification works very differently.
+
+To classify a new point:
+
+1. find the \(k\) nearest training observations,
+2. look at their class labels,
+3. use the majority vote.
+
+The tuning parameter is \(k\).
+
+- small \(k\): more flexible, lower bias, higher variance
+- large \(k\): smoother, higher bias, lower variance
+
+Why preprocessing matters for kNN
+===
+
+kNN uses distances, so the scale of each predictor matters.
+
+If one predictor is measured on a much larger scale, it can dominate the distance calculation.
+
+So for kNN we usually standardize the predictors.
+
+**Important:** the means and standard deviations must be computed from the training data only.
+
+```{r scale-knn, eval=FALSE}
+mu <- colMeans(x[train_id, , drop = FALSE])
+s  <- apply(x[train_id, , drop = FALSE], 2, sd)
+
+x_train <- scale(x[train_id, , drop = FALSE], center = mu, scale = s)
+x_test  <- scale(x[test_id,  , drop = FALSE], center = mu, scale = s)
+```
+
+Manual CV loop to choose \(k\)
+===
+
+We will tune \(k\) by 5-fold CV on the training data.
+
+```{r knn-cv, eval=FALSE}
+library(class)
+
+set.seed(11)
+
+K <- 5
+fold_id <- sample(rep(1:K, length.out = length(train_id)))
+k_grid <- c(1, 3, 5, 7, 9, 11, 15, 21, 31, 51)
+
+cv_err_knn <- matrix(NA, nrow = K, ncol = length(k_grid))
+
+for (fold in 1:K) {
+
+  x_tr_raw <- x[train_id, , drop = FALSE][fold_id != fold, , drop = FALSE]
+  y_tr <- y[train_id][fold_id != fold]
+
+  x_val_raw <- x[train_id, , drop = FALSE][fold_id == fold, , drop = FALSE]
+  y_val <- y[train_id][fold_id == fold]
+
+  mu_fold <- colMeans(x_tr_raw)
+  s_fold  <- apply(x_tr_raw, 2, sd)
+
+  x_tr <- scale(x_tr_raw, center = mu_fold, scale = s_fold)
+  x_val <- scale(x_val_raw, center = mu_fold, scale = s_fold)
+
+  for (j in seq_along(k_grid)) {
+    pred_fold <- knn(train = x_tr, test = x_val, cl = y_tr, k = k_grid[j])
+    cv_err_knn[fold, j] <- mean(pred_fold != y_val)
+  }
+}
+
+knn_cv_mean <- colMeans(cv_err_knn)
+k_hat <- k_grid[which.min(knn_cv_mean)]
+```
+
+Fit the final kNN classifier
+===
+
+```{r knn-final, eval=FALSE}
+knn_pred <- knn(train = x_train,
+                test = x_test,
+                cl = y[train_id],
+                k = k_hat)
+
+table(predicted = knn_pred,
+      truth = y[test_id])
+
+knn_test_error <- mean(knn_pred != y[test_id])
+
+k_hat
+knn_test_error
+```
+
+Compare logistic regression and kNN
+===
+
+```{r compare-classifiers, eval=FALSE}
+log_test_error <- mean(log_class != y[test_id])
+
+c(Logistic = log_test_error,
+  kNN = knn_test_error)
+```
+
+Summary
+===
+
+- Classification predicts categorical outcomes.
+- Logistic regression returns probabilities, then we choose a threshold for class labels.
+- A confusion matrix helps us compute TPR, FPR, and other threshold-specific summaries.
+- Calibration asks whether predicted probabilities behave like probabilities.
+- ROC curves and AUC summarize discrimination across thresholds.
+- kNN uses a tuning parameter \(k\) and depends strongly on preprocessing.
+- Standardization for kNN should be done using training data only.
+- Cross-validation can be used to tune \(k\) before final test-set evaluation.
