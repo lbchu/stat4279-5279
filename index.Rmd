@@ -109,7 +109,12 @@ All slides are provided as HTML and are best viewed in a modern web browser.
   - [Source](4-Statistical Learning/classification.Rmd)
   - [Code](4-Statistical Learning/code_logistic_regression.R)
 
+### Module 05: Tidyverse
 
+- **Introduction to Tidyverse**
+  - [Slides](5-Tidyverse/tidyverse_intro.html)
+  - [Source](5-Tidyverse/tidyverse_intro.Rmd)
+  
   
 ### Notes
 

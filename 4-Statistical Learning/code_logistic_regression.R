@@ -1,7 +1,6 @@
 ### training and test split
 
 library(ISLR2)
-library(class)
 
 data(Default)
 
@@ -36,8 +35,7 @@ range(log_prob)
 log_class <- ifelse(log_prob > 0.5, "Yes", "No")
 log_class <- factor(log_class, levels = levels(y))
 
-table(predicted = log_class,
-      truth = y[test_id])
+table(truth = y[test_id], predicted = log_class    )
 
 mean(log_class != y[test_id])
 

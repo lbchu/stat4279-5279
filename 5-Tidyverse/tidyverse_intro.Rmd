@@ -1,0 +1,519 @@
+---
+title: 'Tidyverse I: Tibbles, Pipes, and dplyr Verbs'
+author: "Statistical Computing for Data Analysis"
+output:
+  slidy_presentation:
+    font_adjustment: -1
+  ioslides_presentation: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+```
+
+Tidyverse
+===
+
+The **tidyverse** is a collection of R packages designed to make data analysis workflows readable and consistent.
+
+Today we focus on three pieces:
+
+- **Tibbles and tidy data**
+- **The pipe**
+- **Core `dplyr` verbs** for data wrangling
+
+```{r, eval=FALSE}
+library(tidyverse)
+```
+
+If you do not have the tidyverse installed:
+
+```{r, eval=FALSE}
+install.packages("tidyverse")
+```
+
+Why tidyverse?
+===
+
+For statistical computing, tidyverse is useful because it gives us a readable grammar for moving from raw data to analysis-ready data.
+
+A common workflow is:
+
+1. Import or create data
+2. Clean and organize the data
+3. Create summaries
+4. Make plots
+5. Fit models
+6. Evaluate results
+
+The goal is not to replace base R. The goal is to learn another syntax that is especially convenient for data analysis pipelines.
+
+A Reproducibility Caution
+===
+
+The tidyverse is widely used and very helpful for readable data analysis code, but it is built from external R packages that change over time.
+
+Tidyverse code is often readable and efficient, but because tidyverse packages evolve over time, long-term reproducibility requires more attention to package versions than base R code.
+
+For example, older code may use `gather()` and `spread()`, while newer code usually uses `pivot_longer()` and `pivot_wider()`.
+
+This does **not** mean we should avoid the tidyverse. It means that for reproducible work, we should be cautious. 
+
+Base R functions change more slowly and are always available with R itself, while tidyverse functions require additional packages.
+
+Example data
+===
+
+We will use a small dataset so that we can see exactly what each function does.
+
+```{r}
+library(tidyverse)
+
+students <- tibble(
+  id = 1:8,
+  section = c("A", "A", "A", "B", "B", "B", "B", "A"),
+  hours = c(5, 8, 3, 6, 9, 2, 4, 7),
+  score = c(82, 91, 74, 88, 95, 70, 79, 86),
+  passed = c(TRUE, TRUE, TRUE, TRUE, TRUE, FALSE, TRUE, TRUE)
+)
+
+students
+```
+
+Tibbles
+===
+
+A **tibble** is a modern version of a data frame.
+
+```{r}
+students
+```
+
+Tibbles behave very similarly to data frames, but print more neatly and are often easier to inspect.
+
+Useful functions:
+
+```{r}
+glimpse(students)
+```
+
+Tibble vs. data frame
+===
+
+Base R data frame:
+
+```{r}
+students_df <- data.frame(
+  id = 1:8,
+  section = c("A", "A", "A", "B", "B", "B", "B", "A"),
+  hours = c(5, 8, 3, 6, 9, 2, 4, 7),
+  score = c(82, 91, 74, 88, 95, 70, 79, 86),
+  passed = c(TRUE, TRUE, TRUE, TRUE, TRUE, FALSE, TRUE, TRUE)
+)
+
+students_df
+```
+
+Tidyverse version:
+
+```{r}
+students_tbl <- tibble(
+  id = 1:8,
+  section = c("A", "A", "A", "B", "B", "B", "B", "A"),
+  hours = c(5, 8, 3, 6, 9, 2, 4, 7),
+  score = c(82, 91, 74, 88, 95, 70, 79, 86),
+  passed = c(TRUE, TRUE, TRUE, TRUE, TRUE, FALSE, TRUE, TRUE)
+)
+
+students_tbl
+```
+
+Converting between data frames and tibbles
+===
+
+You can convert a data frame to a tibble with `as_tibble()`.
+
+```{r}
+mtcars_tbl <- as_tibble(mtcars)
+mtcars_tbl
+```
+
+Base R version: `data.frame()` creates a standard data frame.
+
+```{r}
+mtcars_df <- data.frame(mtcars)
+head(mtcars_df)
+```
+
+Both are acceptable data structures for most statistical modeling functions in R.
+
+Tidy data
+===
+
+A dataset is usually called **tidy** when:
+
+- each row is an observation
+- each column is a variable
+- each cell contains one value
+
+For example, this is tidy:
+
+```{r}
+students
+```
+
+Each row is one student. Each column is one variable about that student.
+
+The pipe
+===
+
+The pipe sends the object on the left into the function on the right.
+
+```{r}
+students %>%
+  filter(section == "A")
+```
+
+Read this as:
+
+> Take `students`, then keep rows where `section == "A"`.
+
+The pipe is mainly about "readability".
+
+Without the pipe
+===
+
+This code:
+
+```{r}
+students %>%
+  filter(section == "A")
+```
+
+is equivalent to:
+
+```{r}
+students_df[students_df$section=="A",]
+```
+
+The pipe becomes more useful when we want to do several steps in sequence.
+
+With several steps
+===
+
+```{r}
+students %>%
+  filter(section == "A") %>%
+  select(id, hours, score) %>%
+  arrange(desc(score))
+```
+
+Read this as:
+
+1. Start with `students`
+2. Keep section A
+3. Keep only selected columns
+4. Sort by score from highest to lowest
+
+The pipe helps the code follow the order of the analysis.
+
+One equivalent version in base R: 
+```{r}
+# Keep only students in section A
+students_A <- students_df[students_df$section == "A", ]
+
+# Keep selected columns
+students_A <- students_A[, c("id", "hours", "score")]
+
+# Sort by score from highest to lowest
+students_A <- students_A[order(-students_A$score), ]
+
+students_A
+```
+
+Core dplyr verbs
+===
+
+Some important `dplyr` verbs are:
+
+- `filter()` keeps rows
+- `select()` keeps columns
+- `mutate()` creates or modifies columns
+- `arrange()` sorts rows
+- `summarize()` collapses data into summaries
+- `group_by()` applies operations within groups
+
+Today we start with the first four.
+
+`filter()`: keep rows
+===
+
+Use `filter()` to keep rows that satisfy a condition.
+
+```{r}
+students %>%
+  filter(score >= 85)
+```
+
+Base R version:
+
+```{r}
+students[students$score >= 85, ]
+```
+
+Both versions return the students with score at least 85.
+
+Multiple filter conditions
+===
+
+Use `&` for “and”.
+
+```{r}
+students %>%
+  filter(section == "B" & score >= 80)
+```
+
+Base R version:
+
+```{r}
+students[students$section == "B" & students$score >= 80, ]
+```
+
+Use `|` for “or”.
+
+```{r}
+students %>%
+  filter(score >= 90 | hours >= 8)
+```
+
+Base R version:
+
+```{r}
+students[students$score >= 90 | students$hours >= 8, ]
+```
+
+`select()`: keep columns
+===
+
+Use `select()` to keep selected variables.
+
+```{r}
+students %>%
+  select(id, section, score)
+```
+
+Base R version:
+
+```{r}
+students[, c("id", "section", "score")]
+```
+
+This does not change the rows. It changes which columns we keep.
+
+`mutate()`: create or modify columns
+===
+
+Use `mutate()` to create a new variable.
+
+```{r}
+students %>%
+  mutate(score_percent = score / 100)
+```
+
+Base R version:
+
+```{r}
+students_base <- students
+students_base$score_percent <- students_base$score / 100
+students_base
+```
+
+The original rows are preserved. We have added a new column.
+
+Creating indicator variables
+===
+
+A common use of `mutate()` is creating an indicator variable.
+
+```{r}
+students %>%
+  mutate(high_score = score >= 90)
+```
+
+Base R version:
+
+```{r}
+students_base <- students
+students_base$high_score <- students_base$score >= 90
+students_base
+```
+
+
+Using `if_else()`
+===
+
+We can also create a labeled variable.
+
+```{r}
+students %>%
+  mutate(performance = if_else(score >= 85, "high", "not high"))
+```
+
+Base R version:
+
+```{r}
+students_base <- students
+students_base$performance <- ifelse(students_base$score >= 85, "high", "not high")
+students_base
+```
+
+Note: `if_else()` is the tidyverse version. `ifelse()` is the base R version.
+
+`arrange()`: sort rows
+===
+
+Use `arrange()` to sort rows by a variable.
+
+```{r}
+students %>%
+  arrange(score)
+```
+
+Base R version:
+
+```{r}
+students[order(students$score), ]
+```
+
+By default, sorting is from smallest to largest.
+
+Descending order
+===
+
+Use `desc()` inside `arrange()` for descending order.
+
+```{r}
+students %>%
+  arrange(desc(score))
+```
+
+Base R version:
+
+```{r}
+students[order(students$score, decreasing = TRUE), ]
+```
+
+Combining verbs
+===
+
+The tidyverse style is especially helpful when we combine several data-wrangling steps.
+
+```{r}
+students %>%
+  filter(passed == TRUE) %>%
+  mutate(score_percent = score / 100) %>%
+  select(id, section, hours, score_percent) %>%
+  arrange(desc(score_percent))
+```
+
+The code reads from top to bottom in the same order as the workflow.
+
+Base R version of the same workflow
+===
+
+```{r}
+students_base <- students[students$passed == TRUE, ]
+students_base$score_percent <- students_base$score / 100
+students_base <- students_base[, c("id", "section", "hours", "score_percent")]
+students_base <- students_base[order(students_base$score_percent, decreasing = TRUE), ]
+students_base
+```
+
+This does the same thing. The difference is mostly syntax and what you consider readability.
+
+Combining verbs to create grouped summaries
+===
+
+We can also combine verbs to answer a summary question.
+
+Question: among students who passed, what is the average score in each section?
+
+```{r}
+students %>%
+  filter(passed == TRUE) %>%
+  group_by(section) 
+```
+
+Base R version:
+
+```{r}
+students_passed <- students[students$passed == TRUE, ]
+
+students_by_section <- split(students_passed, students_passed$section)
+students_by_section[["A"]]
+```
+Combining verbs to create grouped summaries
+===
+
+We can also combine verbs to answer a summary question.
+
+Question: among students who passed, what is the average score in each section?
+
+```{r}
+students %>%
+  filter(passed == TRUE) %>%
+  group_by(section) %>%
+  summarize(
+    mean_score = mean(score)
+  ) %>%
+  arrange(desc(mean_score))
+```
+
+Base R version:
+
+```{r}
+passed_students <- students[students$passed == TRUE, ]
+passed_summary <- aggregate(score ~ section, data = passed_students, FUN = mean)
+
+names(passed_summary)[which(names(passed_summary)=="score")] <- "mean_score"
+passed_summary
+```
+
+Keep average for every student
+===
+
+Compute a group level summary but without collapsing the data: 
+
+```{r}
+students <- students %>%
+  group_by(section) %>%
+  mutate(section_mean = mean(score)) %>%
+  ungroup() #removes the grouping structure after the grouped calculation is finished, good habit.
+
+students
+```
+
+Base R version: 
+```{r}
+students$section_mean <- ave(
+  students$score,
+  students$section,
+  FUN = mean
+)
+
+students
+```
+
+
+Main takeaways
+===
+
+- A **tibble** is a modern data frame.
+- **Tidy data** means rows are observations and columns are variables.
+- The **pipe** lets us write workflows from left to right and top to bottom.
+- `filter()` keeps rows.
+- `select()` keeps columns.
+- `mutate()` creates or modifies columns.
+- `arrange()` sorts rows.
+- Most tidyverse operations have direct base R analogues.
+
