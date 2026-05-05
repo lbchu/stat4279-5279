@@ -1,0 +1,469 @@
+---
+title: 'Tidyverse II: Creating Analysis-Ready Variables'
+author: "Statistical Computing for Data Analysis"
+output:
+  slidy_presentation:
+    font_adjustment: -1
+  ioslides_presentation: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+```
+
+Today: analysis-ready variables
+===
+
+Last time, we introduced:
+
+- tibbles
+- the pipe
+- `filter()`
+- `select()`
+- `mutate()`
+- `arrange()`
+- `group_by()` and `summarize()`
+
+Today we will use tidyverse tools to create variables and summaries that are useful for analysis.
+
+The goal is practical:
+
+> How do we turn raw variables into variables that answer statistical questions?
+
+Load packages
+===
+
+```{r}
+library(tidyverse)
+```
+
+We will use a small dataset so that the code is easy to inspect.
+
+```{r}
+students <- tibble(
+  id = 1:10,
+  section = c("A", "A", "A", "B", "B", "B", "B", "A", "A", "B"),
+  hours = c(5, 8, 3, 6, 9, 2, 4, 7, 10, 1),
+  score = c(82, 91, 74, 88, 95, 70, 79, 86, 97, 65),
+  passed = c(TRUE, TRUE, TRUE, TRUE, TRUE, FALSE, TRUE, TRUE, TRUE, FALSE)
+)
+
+students
+```
+
+Why create new variables?
+===
+
+Raw variables are not always in the form we need for analysis.
+
+For example, we may want to create:
+
+- an indicator for whether a student passed
+- a label for high versus low performance
+- a category such as low, medium, or high
+- standardized versions of several variables
+- group-level summaries
+
+This is one of the most common uses of `mutate()`.
+
+Review: `mutate()`
+===
+
+`mutate()` creates a new column or modifies an existing column.
+
+```{r}
+students %>%
+  mutate(score_percent = score / 100)
+```
+
+Base R version:
+
+```{r}
+students_base <- students
+students_base$score_percent <- students_base$score / 100
+students_base
+```
+
+Creating TRUE/FALSE variables
+===
+
+Sometimes we want a logical variable.
+
+```{r}
+students %>%
+  mutate(high_score = score >= 90)
+```
+
+Base R version:
+
+```{r}
+students_base <- students
+students_base$high_score <- students_base$score >= 90
+students_base
+```
+
+This creates a variable that is either `TRUE` or `FALSE`.
+
+Creating labels with `if_else()`
+===
+
+Use `if_else()` when there are two possible outcomes.
+
+```{r}
+students %>%
+  mutate(
+    performance = if_else(score >= 85, "high", "not high")
+  )
+```
+
+Read this as:
+
+> If `score >= 85`, label the student as `"high"`. Otherwise, label the student as `"not high"`.
+
+Base R version: `ifelse()`
+===
+
+The base R version is `ifelse()`.
+
+```{r}
+students_base <- students
+students_base$performance <- ifelse(
+  students_base$score >= 85,
+  "high",
+  "not high"
+)
+
+students_base
+```
+
+The idea is the same:
+
+```{r, eval=FALSE}
+ifelse(condition, value_if_true, value_if_false)
+```
+
+Using more than one condition
+===
+
+We can combine conditions using `&` for "and".
+
+```{r}
+students %>%
+  mutate(
+    strong_and_studied = if_else(score >= 85 & hours >= 6,
+                                 "yes", "no")
+  )
+```
+
+Base R version:
+
+```{r}
+students_base <- students
+students_base$strong_and_studied <- ifelse(
+  students_base$score >= 85 & students_base$hours >= 6,
+  "yes",
+  "no"
+)
+
+students_base
+```
+
+Using `case_when()`
+===
+
+Use `case_when()` when there are more than two categories.
+
+```{r}
+students %>%
+  mutate(
+    score_group = case_when(
+      score < 75 ~ "low",
+      score >= 75 & score < 90 ~ "medium",
+      score >= 90 ~ "high"
+    )
+  )
+```
+
+This is easier to read than many nested `if_else()` statements.
+
+How to read `case_when()`
+===
+
+The structure is:
+
+```{r, eval=FALSE}
+case_when(
+  condition_1 ~ value_1,
+  condition_2 ~ value_2,
+  condition_3 ~ value_3
+)
+```
+
+Each line means:
+
+> If this condition is true, use this value.
+
+The order matters. R checks the conditions from top to bottom.
+
+Base R version: nested `ifelse()`
+===
+
+One base R version uses nested `ifelse()`.
+
+```{r}
+students_base <- students
+students_base$score_group <- ifelse(
+  students_base$score < 75,
+  "low",
+  ifelse(students_base$score < 90, "medium", "high")
+)
+
+students_base
+```
+
+This works, but it can become hard to read when there are many categories.
+
+A default category
+===
+
+It is often useful to include a default category using `TRUE ~`.
+
+```{r}
+students %>%
+  mutate(
+    attendance_group = case_when(
+      hours < 4 ~ "low hours",
+      hours >= 4 & hours < 8 ~ "moderate hours",
+      hours >= 8 ~ "high hours",
+      TRUE ~ "other"
+    )
+  )
+```
+
+`TRUE ~ "other"` catches anything that did not match the earlier conditions.
+
+Checking your new variables
+===
+
+After creating a new variable, check it.
+
+```{r}
+students2 <- students %>%
+  mutate(
+    score_group = case_when(
+      score < 75 ~ "low",
+      score >= 75 & score < 90 ~ "medium",
+      score >= 90 ~ "high"
+    )
+  )
+
+table(students2$score_group)
+```
+
+Base R checking function:
+
+```{r}
+table(students_base$score_group)
+```
+
+`count()`: a tidyverse shortcut
+===
+
+The tidyverse also has `count()`.
+
+```{r}
+students2 %>%
+  count(score_group)
+```
+
+This is equivalent to grouping and summarizing:
+
+```{r}
+students2 %>%
+  group_by(score_group) %>%
+  summarize(n = n())
+```
+
+Base R version:
+
+```{r}
+table(students2$score_group)
+```
+
+Motivation for `across()`
+===
+
+Sometimes we want to apply the same operation to several columns.
+
+For example, suppose we want the mean of:
+
+- `hours`
+- `score`
+
+We could write:
+
+```{r}
+students %>%
+  summarize(
+    mean_hours = mean(hours),
+    mean_score = mean(score)
+  )
+```
+
+But this becomes repetitive when there are many variables.
+
+Using `across()` inside `summarize()`
+===
+
+`across()` lets us apply the same function to multiple columns.
+
+```{r}
+students %>%
+  summarize(
+    across(c(hours, score), mean)
+  )
+```
+
+Read this as:
+
+> Summarize across the columns `hours` and `score` by taking the mean.
+
+Base R version:
+
+```{r}
+sapply(students[, c("hours", "score")], mean)
+```
+
+Using `across()` with groups
+===
+
+`across()` is especially useful with `group_by()`.
+
+```{r}
+students %>%
+  group_by(section) %>%
+  summarize(
+    across(c(hours, score), mean)
+  )
+```
+
+Base R version:
+
+```{r}
+aggregate(
+  students[, c("hours", "score")],
+  by = list(section = students$section),
+  FUN = mean
+)
+```
+
+Naming the output
+===
+
+We can control the names of the new summary columns.
+
+```{r}
+students %>%
+  group_by(section) %>%
+  summarize(
+    across(c(hours, score), mean, .names = "mean_{.col}")
+  )
+```
+
+Here, `{.col}` is replaced by the original column name.
+
+So `score` becomes `mean_score`.
+
+Using `across()` with missing values
+===
+
+Many real datasets have missing values.
+
+```{r}
+students_missing <- students
+students_missing$score[c(3, 6)] <- NA
+students_missing
+```
+
+We can use an anonymous function inside `across()`.
+
+```{r}
+students_missing %>%
+  summarize(
+    across(c(hours, score), ~ mean(.x, na.rm = TRUE))
+  )
+```
+
+Base R version:
+
+```{r}
+sapply(students_missing[, c("hours", "score")], mean, na.rm = TRUE)
+```
+
+Using `across()` inside `mutate()`
+===
+
+We can also use `across()` to create new versions of several columns.
+
+For example, create standardized versions of `hours` and `score`.
+
+```{r}
+students %>%
+  mutate(
+    across(
+      c(hours, score),
+      ~ (.x - mean(.x)) / sd(.x),
+      .names = "{.col}_z"
+    )
+  )
+```
+
+This keeps the original variables and adds new variables.
+
+Base R version
+===
+
+```{r}
+students_base <- students
+students_base$hours_z <- (students_base$hours - mean(students_base$hours)) / sd(students_base$hours)
+students_base$score_z <- (students_base$score - mean(students_base$score)) / sd(students_base$score)
+students_base
+```
+
+The base R version is completely fine.
+
+The tidyverse version is useful when we want to repeat the same operation across several variables.
+
+Putting it together
+===
+
+Question:
+
+> Among students who passed, what are the average hours studied and average score by score group?
+
+```{r}
+students %>%
+  mutate(
+    score_group = case_when(
+      score < 75 ~ "low",
+      score >= 75 & score < 90 ~ "medium",
+      score >= 90 ~ "high"
+    )
+  ) %>%
+  filter(passed == TRUE) %>%
+  group_by(score_group) %>%
+  summarize(
+    across(c(hours, score), mean, .names = "mean_{.col}"),
+    n = n()
+  )
+```
+
+Main takeaways
+===
+
+- `mutate()` creates or modifies variables.
+- `if_else()` is useful for two categories.
+- `case_when()` is useful for three or more categories.
+- Always check newly created variables.
+- `across()` applies the same operation to multiple columns.
+- The tidyverse is useful when the workflow becomes easier to read from top to bottom.

@@ -115,6 +115,10 @@ All slides are provided as HTML and are best viewed in a modern web browser.
   - [Slides](5-Tidyverse/tidyverse_intro.html)
   - [Source](5-Tidyverse/tidyverse_intro.Rmd)
   
+- **Tidyverse Part II**
+  - [Slides](5-Tidyverse/tidyverse_part2.html)
+  - [Source](5-Tidyverse/tidyverse_part2.Rmd)
+  
   
 ### Notes
 
